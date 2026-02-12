@@ -19,24 +19,7 @@ const Map = dynamic(() => import("@/components/Map"), {
   ),
 });
 
-// Set CSS variable for actual viewport height on iOS
-function setAppHeight() {
-  if (typeof document !== "undefined") {
-    document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
-  }
-}
-
 export default function Home() {
-  // iOS viewport height fix
-  useEffect(() => {
-    setAppHeight();
-    window.addEventListener("resize", setAppHeight);
-    window.addEventListener("orientationchange", setAppHeight);
-    return () => {
-      window.removeEventListener("resize", setAppHeight);
-      window.removeEventListener("orientationchange", setAppHeight);
-    };
-  }, []);
   const [locations, setLocations] = useState<Spot[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Spot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -307,7 +290,7 @@ export default function Home() {
   };
 
   return (
-    <div className="w-screen flex flex-col md:flex-row overflow-hidden" style={{ height: "var(--app-height, 100vh)" }}>
+    <div className="h-full w-full flex flex-col md:flex-row overflow-hidden">
       {/* Map Container */}
       <div className="flex-1 relative">
         <Map
@@ -452,9 +435,10 @@ export default function Home() {
 
       {/* Mobile Bottom Sheet */}
       <div
-        className={`md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)]`}
+        className={`md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)] ${
+          isBottomSheetExpanded ? "h-[70vh]" : "h-16"
+        }`}
         style={{
-          height: isBottomSheetExpanded ? "calc(var(--app-height, 100vh) * 0.7)" : "4rem",
           transform: "translateZ(0)",
           WebkitTransform: "translateZ(0)",
         }}
@@ -477,7 +461,7 @@ export default function Home() {
 
         {/* Content */}
         {isBottomSheetExpanded && (
-          <div className="flex-1 overflow-y-auto px-4 pb-4" style={{ maxHeight: "calc(var(--app-height, 100vh) * 0.7 - 60px)" }}>
+          <div className="flex-1 overflow-y-auto px-4 pb-4 max-h-[calc(70vh-60px)]">
             {(showForm || selectedLocation) && (
               <button
                 onClick={handleBackToList}
