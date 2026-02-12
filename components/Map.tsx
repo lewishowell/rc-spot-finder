@@ -129,22 +129,45 @@ function MapResizer() {
 
   useEffect(() => {
     const container = map.getContainer();
+    let isAnimating = false;
+
+    // Track when map is animating to avoid resize during animation
+    const onMoveStart = () => { isAnimating = true; };
+    const onMoveEnd = () => {
+      isAnimating = false;
+      // Invalidate size after animation completes
+      setTimeout(() => map.invalidateSize({ pan: false }), 50);
+    };
+
+    map.on("movestart", onMoveStart);
+    map.on("moveend", onMoveEnd);
 
     const resizeObserver = new ResizeObserver(() => {
-      map.invalidateSize();
+      if (!isAnimating) {
+        map.invalidateSize({ pan: false });
+      }
     });
 
     resizeObserver.observe(container);
 
-    // Also handle window resize
+    // Handle window resize with debounce
+    let resizeTimeout: ReturnType<typeof setTimeout>;
     const handleResize = () => {
-      setTimeout(() => map.invalidateSize(), 100);
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (!isAnimating) {
+          map.invalidateSize({ pan: false });
+        }
+      }, 150);
     };
     window.addEventListener("resize", handleResize);
 
     return () => {
       resizeObserver.disconnect();
       window.removeEventListener("resize", handleResize);
+      map.off("movestart", onMoveStart);
+      map.off("moveend", onMoveEnd);
+      clearTimeout(resizeTimeout);
     };
   }, [map]);
 

@@ -324,25 +324,7 @@ export default function Home() {
           searchLocation={searchLocation}
         />
 
-        {/* Floating search box */}
-        <div className="absolute top-4 left-4 right-4 md:right-auto md:w-96 z-[1000] pt-[env(safe-area-inset-top,0px)]">
-          <SearchBox
-            onSearch={handleSearch}
-            placeholder="Try: 'bash spots in California' or '5 star tracks'"
-          />
-        </div>
-
-        {/* Add button - mobile */}
-        <button
-          onClick={handleAddNew}
-          className="md:hidden absolute bottom-24 right-4 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center z-[1000] hover:bg-blue-700 transition-colors mb-[env(safe-area-inset-bottom,0px)]"
-        >
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
-
-        {/* Sidebar toggle - desktop */}
+        {/* Desktop sidebar toggle - stays inside map container */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="hidden md:flex absolute top-4 right-4 w-10 h-10 bg-white rounded-lg shadow-lg items-center justify-center z-[1000] hover:bg-gray-50 transition-colors"
@@ -356,6 +338,39 @@ export default function Home() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
+      </div>
+
+      {/* Mobile UI Overlay - fixed outside map container to prevent iOS issues */}
+      <div className="md:hidden fixed inset-0 pointer-events-none z-[1000]" style={{ transform: "translateZ(0)" }}>
+        {/* Search box */}
+        <div
+          className="absolute top-0 left-0 right-0 p-4 pointer-events-auto"
+          style={{ paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))" }}
+        >
+          <SearchBox
+            onSearch={handleSearch}
+            placeholder="Try: 'bash spots in California' or '5 star tracks'"
+          />
+        </div>
+
+        {/* Add button */}
+        <button
+          onClick={handleAddNew}
+          className="absolute right-4 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-colors pointer-events-auto"
+          style={{ bottom: "calc(5rem + env(safe-area-inset-bottom, 0px))" }}
+        >
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Desktop search box - separate from mobile */}
+      <div className="hidden md:block absolute top-4 left-4 w-96 z-[1000]">
+        <SearchBox
+          onSearch={handleSearch}
+          placeholder="Try: 'bash spots in California' or '5 star tracks'"
+        />
       </div>
 
       {/* Desktop Sidebar */}
@@ -437,8 +452,12 @@ export default function Home() {
 
       {/* Mobile Bottom Sheet */}
       <div
-        className={`md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1001] pb-[env(safe-area-inset-bottom,0px)]`}
-        style={{ height: isBottomSheetExpanded ? "calc(var(--app-height, 100vh) * 0.7)" : "4rem" }}
+        className={`md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)]`}
+        style={{
+          height: isBottomSheetExpanded ? "calc(var(--app-height, 100vh) * 0.7)" : "4rem",
+          transform: "translateZ(0)",
+          WebkitTransform: "translateZ(0)",
+        }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
