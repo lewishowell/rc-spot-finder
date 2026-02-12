@@ -40,7 +40,8 @@ export default function SearchBox({ onSearch, placeholder = "Search locations...
           value={query}
           onChange={handleChange}
           placeholder={placeholder}
-          className="w-full pl-10 pr-20 py-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          className="w-full pl-10 pr-24 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+          style={{ fontSize: "16px" }}
         />
         <svg
           className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -75,7 +76,7 @@ export default function SearchBox({ onSearch, placeholder = "Search locations...
           </button>
         </div>
       </div>
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="mt-1 text-sm text-gray-500 hidden md:block">
         Try: "bash spots in California" or "5 star race tracks"
       </p>
     </form>

@@ -24,7 +24,7 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased touch-manipulation">{children}</body>
     </html>
   );
 }
