@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Leaflet map container */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+/* Custom marker colors */
+.marker-bash {
+  filter: hue-rotate(0deg);
+}
+
+.marker-race {
+  filter: hue-rotate(200deg);
+}
+
+.marker-crawl {
+  filter: hue-rotate(100deg);
+}
+
+/* Bottom sheet styles for mobile */
+.bottom-sheet {
+  transition: transform 0.3s ease-out;
+}
+
+.bottom-sheet.collapsed {
+  transform: translateY(calc(100% - 60px));
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

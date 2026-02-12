@@ -1,0 +1,146 @@
+"use client";
+
+import { Location, CLASSIFICATIONS } from "@/lib/types";
+import RatingStars from "./RatingStars";
+
+interface LocationCardProps {
+  location: Location;
+  onClick: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  isSelected?: boolean;
+  compact?: boolean;
+}
+
+export default function LocationCard({
+  location,
+  onClick,
+  onEdit,
+  onDelete,
+  isSelected = false,
+  compact = false,
+}: LocationCardProps) {
+  const classification = CLASSIFICATIONS.find((c) => c.value === location.classification);
+
+  if (compact) {
+    return (
+      <button
+        onClick={onClick}
+        className={`w-full text-left p-3 rounded-lg border transition-all ${
+          isSelected
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+        }`}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-gray-900 truncate">{location.name}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span
+                className="px-2 py-0.5 rounded-full text-xs text-white"
+                style={{ backgroundColor: classification?.color }}
+              >
+                {classification?.label}
+              </span>
+              <RatingStars rating={location.rating} size="sm" />
+            </div>
+          </div>
+          {location.imageUrl && (
+            <img
+              src={location.imageUrl}
+              alt={location.name}
+              className="w-12 h-12 object-cover rounded flex-shrink-0"
+            />
+          )}
+        </div>
+      </button>
+    );
+  }
+
+  return (
+    <div
+      className={`bg-white rounded-lg border overflow-hidden ${
+        isSelected ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-200"
+      }`}
+    >
+      {location.imageUrl && (
+        <img
+          src={location.imageUrl}
+          alt={location.name}
+          className="w-full h-48 object-cover"
+        />
+      )}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="font-bold text-lg text-gray-900">{location.name}</h3>
+          <span
+            className="px-2 py-1 rounded-full text-xs text-white flex-shrink-0"
+            style={{ backgroundColor: classification?.color }}
+          >
+            {classification?.label}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 mb-3">
+          <RatingStars rating={location.rating} size="md" />
+          {location.region && (
+            <span className="text-sm text-gray-500">• {location.region}</span>
+          )}
+        </div>
+
+        {location.description && (
+          <p className="text-gray-600 text-sm mb-4">{location.description}</p>
+        )}
+
+        {location.associatedHobbyShop && (
+          <div className="flex items-center gap-2 mb-3 p-2 bg-orange-50 rounded-md">
+            <svg className="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span className="text-sm text-orange-700">
+              Nearest Shop: <span className="font-medium">{location.associatedHobbyShop.name}</span>
+            </span>
+          </div>
+        )}
+
+        <div className="text-xs text-gray-400 mb-4">
+          <p>
+            Coordinates: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+          </p>
+          <p>Added: {new Date(location.createdAt).toLocaleDateString()}</p>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={onClick}
+            className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+          >
+            View on Map
+          </button>
+          {onEdit && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className="px-3 py-2 border border-gray-300 text-sm rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Edit
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="px-3 py-2 border border-red-300 text-red-600 text-sm rounded-md hover:bg-red-50 transition-colors"
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

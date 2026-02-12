@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Location {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  latitude       Float
+  longitude      Float
+  classification String   // "bash" | "race" | "crawl" | "hobby" | "airfield"
+  rating         Int      // 1-5
+  imageUrl       String?
+  region         String?  // e.g., "Northeast", "California"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Association to a hobby shop
+  associatedHobbyShopId String?
+  associatedHobbyShop   Location?  @relation("HobbyShopSpots", fields: [associatedHobbyShopId], references: [id])
+  associatedSpots       Location[] @relation("HobbyShopSpots")
+}
