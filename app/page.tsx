@@ -290,7 +290,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col md:flex-row overflow-hidden">
+    <div className="h-[100dvh] w-screen flex flex-col md:flex-row overflow-hidden">
       {/* Map Container */}
       <div className="flex-1 relative">
         <Map
@@ -308,7 +308,10 @@ export default function Home() {
         />
 
         {/* Floating search box */}
-        <div className="absolute top-4 left-4 right-4 md:right-auto md:w-96 z-[1000]">
+        <div
+          className="absolute left-4 right-4 md:right-auto md:w-96 z-[1000]"
+          style={{ top: "calc(1rem + env(safe-area-inset-top))" }}
+        >
           <SearchBox
             onSearch={handleSearch}
             placeholder="Try: 'bash spots in California' or '5 star tracks'"
@@ -318,7 +321,8 @@ export default function Home() {
         {/* Add button - mobile */}
         <button
           onClick={handleAddNew}
-          className="md:hidden absolute bottom-24 right-4 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center z-[1000] hover:bg-blue-700 transition-colors"
+          className="md:hidden absolute right-4 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center z-[1000] hover:bg-blue-700 transition-colors"
+          style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
         >
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -421,8 +425,9 @@ export default function Home() {
       {/* Mobile Bottom Sheet */}
       <div
         className={`md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 z-[1001] ${
-          isBottomSheetExpanded ? "h-[70vh]" : "h-16"
+          isBottomSheetExpanded ? "h-[70dvh]" : "h-16"
         }`}
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -442,7 +447,7 @@ export default function Home() {
 
         {/* Content */}
         {isBottomSheetExpanded && (
-          <div className="flex-1 overflow-y-auto px-4 pb-4 h-[calc(70vh-60px)]">
+          <div className="flex-1 overflow-y-auto px-4 pb-4 h-[calc(70dvh-60px)]">
             {(showForm || selectedLocation) && (
               <button
                 onClick={handleBackToList}
