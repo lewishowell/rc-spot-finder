@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
-import { Location, LocationFormData, FilterOptions } from "@/lib/types";
+import { Spot, LocationFormData, FilterOptions } from "@/lib/types";
 import { parseSearchQuery, matchesSearch } from "@/lib/searchParser";
 import { geocodePlace, extractPlaceQuery } from "@/lib/geocode";
 import FilterPanel from "@/components/FilterPanel";
@@ -20,8 +20,8 @@ const Map = dynamic(() => import("@/components/Map"), {
 });
 
 export default function Home() {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [locations, setLocations] = useState<Spot[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<Spot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<FilterOptions>({
     classification: "all",
@@ -148,7 +148,7 @@ export default function Home() {
   }, []);
 
   // Filter locations by search terms (name/description matching)
-  const filteredLocations = useMemo(() => {
+  const filteredLocations: Spot[] = useMemo(() => {
     if (searchTerms.length === 0) {
       return locations;
     }
@@ -176,14 +176,14 @@ export default function Home() {
     setFormInitialData((prev) => ({ ...prev, latitude: lat, longitude: lng }));
   };
 
-  const handleMarkerClick = (location: Location) => {
+  const handleMarkerClick = (location: Spot) => {
     setSelectedLocation(location);
     setShowForm(false);
     setNewMarkerPosition(null);
     // Don't auto-expand bottom sheet on mobile - let user see the popup first
   };
 
-  const handleViewDetails = (location: Location) => {
+  const handleViewDetails = (location: Spot) => {
     setSelectedLocation(location);
     setShowForm(false);
     setNewMarkerPosition(null);
@@ -198,7 +198,7 @@ export default function Home() {
     setNewMarkerPosition(null);
   };
 
-  const handleEdit = (location: Location) => {
+  const handleEdit = (location: Spot) => {
     setFormMode("edit");
     setFormInitialData({
       name: location.name,
@@ -216,7 +216,7 @@ export default function Home() {
     setNewMarkerPosition({ lat: location.latitude, lng: location.longitude });
   };
 
-  const handleDelete = async (location: Location) => {
+  const handleDelete = async (location: Spot) => {
     if (!confirm(`Are you sure you want to delete "${location.name}"?`)) return;
 
     try {
@@ -403,12 +403,12 @@ export default function Home() {
                   : `${filteredLocations.length} spot${filteredLocations.length !== 1 ? "s" : ""} found${searchQuery ? ` for "${searchQuery}"` : ""}. Click the map to add a new spot.`}
               </p>
               <div className="space-y-2">
-                {filteredLocations.map((location) => (
+                {filteredLocations.map((loc) => (
                   <LocationCard
-                    key={location.id}
-                    location={location}
-                    onClick={() => handleMarkerClick(location)}
-                    isSelected={selectedLocation?.id === location.id}
+                    key={loc.id}
+                    location={loc}
+                    onClick={() => handleMarkerClick(loc)}
+                    isSelected={false}
                     compact
                   />
                 ))}
@@ -481,12 +481,12 @@ export default function Home() {
                   onToggle={() => setIsFilterOpen(!isFilterOpen)}
                 />
                 <div className="space-y-2">
-                  {filteredLocations.map((location) => (
+                  {filteredLocations.map((loc) => (
                     <LocationCard
-                      key={location.id}
-                      location={location}
-                      onClick={() => handleMarkerClick(location)}
-                      isSelected={selectedLocation?.id === location.id}
+                      key={loc.id}
+                      location={loc}
+                      onClick={() => handleMarkerClick(loc)}
+                      isSelected={false}
                       compact
                     />
                   ))}

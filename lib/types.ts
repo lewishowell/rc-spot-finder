@@ -1,6 +1,6 @@
 export type Classification = "bash" | "race" | "crawl" | "hobby" | "airfield";
 
-export interface Location {
+export interface Spot {
   id: string;
   name: string;
   description: string | null;
@@ -13,8 +13,11 @@ export interface Location {
   createdAt: Date;
   updatedAt: Date;
   associatedHobbyShopId: string | null;
-  associatedHobbyShop?: Location | null;
+  associatedHobbyShop?: Spot | null;
 }
+
+// Re-export as Location for component compatibility
+export type { Spot as Location };
 
 export interface LocationFormData {
   name: string;
