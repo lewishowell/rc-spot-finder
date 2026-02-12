@@ -355,11 +355,11 @@ export default function Map(props: MapProps) {
         <MapContent {...props} mapType={mapType} />
       </MapContainer>
 
-      {/* Map/Satellite Toggle - positioned outside MapContainer to prevent event bubbling */}
-      <div className="absolute bottom-6 left-4 z-[1000]">
+      {/* Map/Satellite Toggle - positioned above bottom sheet on mobile */}
+      <div className="absolute bottom-20 md:bottom-6 left-4 z-[1000]">
         <button
           onClick={handleMapTypeToggle}
-          className="bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center gap-2 rounded-lg shadow-lg border border-gray-300"
+          className="bg-white px-3 py-2 md:px-4 md:py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center gap-2 rounded-lg shadow-lg border border-gray-300"
           title={mapType === "map" ? "Switch to Satellite" : "Switch to Map"}
         >
           {mapType === "map" ? (
