@@ -44,6 +44,11 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
       return;
     }
 
+    if (formData.latitude === 0 && formData.longitude === 0) {
+      setError("Please tap the map to set a location");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onSubmit(formData);
@@ -127,9 +132,15 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
           <label className="block text-sm font-medium text-gray-700">
             Location
           </label>
-          <span className="text-xs text-purple-600">
-            Drag the purple pin on the map to adjust
-          </span>
+          {formData.latitude === 0 && formData.longitude === 0 ? (
+            <span className="text-xs text-amber-600 font-medium">
+              Tap the map to set location
+            </span>
+          ) : (
+            <span className="text-xs text-purple-600">
+              Drag the purple pin on the map to adjust
+            </span>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>

@@ -196,6 +196,7 @@ export default function Home() {
     setShowForm(true);
     setSelectedLocation(null);
     setNewMarkerPosition(null);
+    setIsBottomSheetExpanded(true);
   };
 
   const handleEdit = (location: Spot) => {
