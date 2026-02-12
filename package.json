@@ -4,9 +4,10 @@
   "description": "Mobile-friendly web app for discovering and sharing RC car spots",
   "scripts": {
     "dev": "next dev --turbopack -H 0.0.0.0",
-    "build": "next build",
+    "build": "prisma generate && prisma db push && next build",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts"

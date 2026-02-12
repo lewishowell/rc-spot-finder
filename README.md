@@ -121,18 +121,25 @@ rc-spot-finder/
 
 ## Deployment
 
-### Vercel (Recommended)
+### Vercel with Vercel Postgres
 
 1. Push to GitHub
-2. Import project in Vercel
-3. Deploy (zero config needed for Next.js)
+2. Go to [vercel.com/new](https://vercel.com/new) and import your repository
+3. Before deploying, go to the **Storage** tab and create a new **Postgres** database
+4. Connect the database to your project - this automatically sets the environment variables
+5. Deploy the project
+6. After deployment, run database migration from the Vercel dashboard or locally:
+   ```bash
+   npx prisma db push
+   ```
 
-### Production Database
+### Local Development with Vercel Postgres
 
-For production, consider migrating from SQLite to PostgreSQL:
-1. Update `prisma/schema.prisma` datasource
-2. Set `DATABASE_URL` environment variable
-3. Run `npx prisma db push`
+1. Install Vercel CLI: `npm i -g vercel`
+2. Link your project: `vercel link`
+3. Pull environment variables: `vercel env pull .env.local`
+4. Run migrations: `npx prisma db push`
+5. Start dev server: `npm run dev`
 
 ## License
 
