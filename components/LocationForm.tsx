@@ -113,14 +113,21 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      alert("No file selected");
+      return;
+    }
 
     setIsUploading(true);
     setError(null);
 
     try {
+      // Read file as blob for iOS compatibility
+      const arrayBuffer = await file.arrayBuffer();
+      const blob = new Blob([arrayBuffer], { type: file.type || "image/jpeg" });
+
       const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
+      formDataUpload.append("file", blob, file.name || "photo.jpg");
 
       const response = await fetch("/api/upload", {
         method: "POST",
