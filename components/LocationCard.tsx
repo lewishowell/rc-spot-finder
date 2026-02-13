@@ -11,6 +11,7 @@ interface LocationCardProps {
   isSelected?: boolean;
   compact?: boolean;
   onVoteChange?: (locationId: string, upvotes: number, downvotes: number, userVote: number | null) => void;
+  onHobbyShopClick?: (hobbyShop: Location) => void;
 }
 
 export default function LocationCard({
@@ -21,6 +22,7 @@ export default function LocationCard({
   isSelected = false,
   compact = false,
   onVoteChange,
+  onHobbyShopClick,
 }: LocationCardProps) {
   const classification = CLASSIFICATIONS.find((c) => c.value === location.classification);
 
@@ -117,14 +119,25 @@ export default function LocationCard({
         )}
 
         {location.associatedHobbyShop && (
-          <div className="flex items-center gap-2 mb-3 p-2 bg-orange-50 rounded-md">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onHobbyShopClick && location.associatedHobbyShop) {
+                onHobbyShopClick(location.associatedHobbyShop as Location);
+              }
+            }}
+            className="w-full flex items-center gap-2 mb-3 p-2 bg-orange-50 rounded-md hover:bg-orange-100 transition-colors text-left"
+          >
             <svg className="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             <span className="text-sm text-orange-700">
-              Nearest Shop: <span className="font-medium">{location.associatedHobbyShop.name}</span>
+              Nearest Shop: <span className="font-medium underline">{location.associatedHobbyShop.name}</span>
             </span>
-          </div>
+            <svg className="w-4 h-4 text-orange-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         )}
 
         {location.user?.name && (

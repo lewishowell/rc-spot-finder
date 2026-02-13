@@ -272,6 +272,15 @@ export default function Home() {
     setIsBottomSheetExpanded(true); // Expand bottom sheet to show details
   };
 
+  const handleHobbyShopClick = useCallback((hobbyShop: Spot) => {
+    // Find the full hobby shop data from locations (it may have more details)
+    const fullHobbyShop = locations.find((loc) => loc.id === hobbyShop.id) || hobbyShop;
+    setSelectedLocation(fullHobbyShop);
+    setShowForm(false);
+    setNewMarkerPosition(null);
+    setIsBottomSheetExpanded(true);
+  }, [locations]);
+
   const handleAddNew = () => {
     setFormMode("add");
     setFormInitialData({});
@@ -506,6 +515,7 @@ export default function Home() {
               onEdit={() => handleEdit(selectedLocation)}
               onDelete={() => handleDelete(selectedLocation)}
               onVoteChange={handleVoteChange}
+              onHobbyShopClick={handleHobbyShopClick}
               isSelected
             />
           ) : (
@@ -589,6 +599,7 @@ export default function Home() {
                 onEdit={() => handleEdit(selectedLocation)}
                 onDelete={() => handleDelete(selectedLocation)}
                 onVoteChange={handleVoteChange}
+                onHobbyShopClick={handleHobbyShopClick}
                 isSelected
               />
             ) : (
