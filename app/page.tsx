@@ -81,6 +81,9 @@ export default function Home() {
       if (filters.sortOrder) {
         params.set("sortOrder", filters.sortOrder);
       }
+      if (filters.mySpots) {
+        params.set("mySpots", "true");
+      }
 
       const response = await fetch(`/api/locations?${params.toString()}`);
       if (!response.ok) throw new Error("Failed to fetch");

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { FilterOptions, CLASSIFICATIONS, REGIONS } from "@/lib/types";
 
 interface FilterPanelProps {
@@ -10,6 +11,8 @@ interface FilterPanelProps {
 }
 
 export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle }: FilterPanelProps) {
+  const { data: session } = useSession();
+
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       <button
@@ -29,6 +32,23 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
 
       {isOpen && (
         <div className="p-4 space-y-4 border-t">
+          {session && (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.mySpots || false}
+                onChange={(e) =>
+                  onFiltersChange({
+                    ...filters,
+                    mySpots: e.target.checked,
+                  })
+                }
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">My Spots Only</span>
+            </label>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Classification
@@ -121,6 +141,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                 region: undefined,
                 sortBy: "createdAt",
                 sortOrder: "desc",
+                mySpots: false,
               })
             }
             className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"

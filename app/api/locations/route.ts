@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const region = searchParams.get("region");
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
+    const mySpots = searchParams.get("mySpots") === "true";
 
     const where: Record<string, unknown> = {};
 
@@ -21,6 +22,11 @@ export async function GET(request: NextRequest) {
 
     if (region && region !== "all") {
       where.region = region;
+    }
+
+    // Filter to only show user's spots if mySpots is true and user is logged in
+    if (mySpots && userId) {
+      where.userId = userId;
     }
 
     const locations = await prisma.location.findMany({

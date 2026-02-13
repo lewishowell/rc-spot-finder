@@ -43,6 +43,7 @@ export interface FilterOptions {
   region?: string;
   sortBy?: "name" | "votes" | "createdAt";
   sortOrder?: "asc" | "desc";
+  mySpots?: boolean;
 }
 
 export const CLASSIFICATIONS: { value: Classification; label: string; color: string }[] = [
