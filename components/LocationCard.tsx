@@ -32,9 +32,9 @@ export default function LocationCard({
 
   if (compact) {
     return (
-      <button
+      <div
         onClick={onClick}
-        className={`w-full text-left p-3 rounded-lg border transition-all ${
+        className={`w-full text-left p-3 rounded-lg border transition-all cursor-pointer ${
           isSelected
             ? "border-blue-500 bg-blue-50"
             : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -70,7 +70,7 @@ export default function LocationCard({
             />
           )}
         </div>
-      </button>
+      </div>
     );
   }
 
