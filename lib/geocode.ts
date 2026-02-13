@@ -4,6 +4,106 @@ interface GeocodeResult {
   displayName: string;
 }
 
+// Map US states to regions
+const STATE_TO_REGION: Record<string, string> = {
+  // California (its own region)
+  "california": "California", "ca": "California",
+  // Texas (its own region)
+  "texas": "Texas", "tx": "Texas",
+  // Florida (its own region)
+  "florida": "Florida", "fl": "Florida",
+  // Pacific Northwest
+  "washington": "Pacific Northwest", "wa": "Pacific Northwest",
+  "oregon": "Pacific Northwest", "or": "Pacific Northwest",
+  "idaho": "Pacific Northwest", "id": "Pacific Northwest",
+  "montana": "Pacific Northwest", "mt": "Pacific Northwest",
+  // West Coast (Hawaii, Alaska)
+  "hawaii": "West Coast", "hi": "West Coast",
+  "alaska": "West Coast", "ak": "West Coast",
+  // Northeast
+  "maine": "Northeast", "me": "Northeast",
+  "new hampshire": "Northeast", "nh": "Northeast",
+  "vermont": "Northeast", "vt": "Northeast",
+  "massachusetts": "Northeast", "ma": "Northeast",
+  "rhode island": "Northeast", "ri": "Northeast",
+  "connecticut": "Northeast", "ct": "Northeast",
+  "new york": "Northeast", "ny": "Northeast",
+  "new jersey": "Northeast", "nj": "Northeast",
+  "pennsylvania": "Northeast", "pa": "Northeast",
+  // Southeast
+  "delaware": "Southeast", "de": "Southeast",
+  "maryland": "Southeast", "md": "Southeast",
+  "virginia": "Southeast", "va": "Southeast",
+  "west virginia": "Southeast", "wv": "Southeast",
+  "north carolina": "Southeast", "nc": "Southeast",
+  "south carolina": "Southeast", "sc": "Southeast",
+  "georgia": "Southeast", "ga": "Southeast",
+  "kentucky": "Southeast", "ky": "Southeast",
+  "tennessee": "Southeast", "tn": "Southeast",
+  "alabama": "Southeast", "al": "Southeast",
+  "mississippi": "Southeast", "ms": "Southeast",
+  "louisiana": "Southeast", "la": "Southeast",
+  "arkansas": "Southeast", "ar": "Southeast",
+  // Midwest
+  "ohio": "Midwest", "oh": "Midwest",
+  "indiana": "Midwest", "in": "Midwest",
+  "illinois": "Midwest", "il": "Midwest",
+  "michigan": "Midwest", "mi": "Midwest",
+  "wisconsin": "Midwest", "wi": "Midwest",
+  "minnesota": "Midwest", "mn": "Midwest",
+  "iowa": "Midwest", "ia": "Midwest",
+  "missouri": "Midwest", "mo": "Midwest",
+  "north dakota": "Midwest", "nd": "Midwest",
+  "south dakota": "Midwest", "sd": "Midwest",
+  "nebraska": "Midwest", "ne": "Midwest",
+  "kansas": "Midwest", "ks": "Midwest",
+  // Southwest
+  "oklahoma": "Southwest", "ok": "Southwest",
+  "new mexico": "Southwest", "nm": "Southwest",
+  "arizona": "Southwest", "az": "Southwest",
+  "nevada": "Southwest", "nv": "Southwest",
+  "utah": "Southwest", "ut": "Southwest",
+  "colorado": "Southwest", "co": "Southwest",
+  "wyoming": "Southwest", "wy": "Southwest",
+};
+
+// Reverse geocode to get region from coordinates
+export async function getRegionFromCoordinates(lat: number, lng: number): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=5`,
+      {
+        headers: {
+          "User-Agent": "RC-Spot-Finder/1.0",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    // Extract state from the response
+    const state = data.address?.state?.toLowerCase();
+
+    if (state && STATE_TO_REGION[state]) {
+      return STATE_TO_REGION[state];
+    }
+
+    // If not in US or unknown state, return "Other"
+    if (data.address?.country_code === "us") {
+      return "Other";
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Reverse geocoding error:", error);
+    return null;
+  }
+}
+
 export async function geocodePlace(query: string): Promise<GeocodeResult | null> {
   try {
     // Use Nominatim (OpenStreetMap's free geocoding service)

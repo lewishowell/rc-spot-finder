@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getRegionFromCoordinates } from "@/lib/geocode";
 
 export async function GET(request: NextRequest) {
   try {
@@ -114,6 +115,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Auto-detect region if not provided
+    let finalRegion = region || null;
+    if (!finalRegion && latitude && longitude) {
+      finalRegion = await getRegionFromCoordinates(latitude, longitude);
+    }
+
     const location = await prisma.location.create({
       data: {
         name,
@@ -122,7 +129,7 @@ export async function POST(request: NextRequest) {
         longitude,
         classification,
         imageUrl: imageUrl || null,
-        region: region || null,
+        region: finalRegion,
         associatedHobbyShopId: associatedHobbyShopId || null,
         userId: session.user.id,
       },
