@@ -307,7 +307,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-white border-2 border-gray-500 text-black font-medium rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             {isUploading ? "Uploading..." : "Upload Image"}
           </button>
@@ -341,7 +341,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          className="px-4 py-2 bg-white border-2 border-gray-500 text-black font-medium rounded-md hover:bg-gray-50 transition-colors"
         >
           Cancel
         </button>
