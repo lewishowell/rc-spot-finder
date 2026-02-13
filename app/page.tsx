@@ -529,7 +529,7 @@ export default function Home() {
           ) : selectedLocation ? (
             <LocationCard
               location={selectedLocation}
-              onClick={() => {}}
+              onClick={() => setIsBottomSheetExpanded(false)}
               onEdit={() => handleEdit(selectedLocation)}
               onDelete={() => handleDelete(selectedLocation)}
               onVoteChange={handleVoteChange}
@@ -613,7 +613,7 @@ export default function Home() {
             ) : selectedLocation ? (
               <LocationCard
                 location={selectedLocation}
-                onClick={() => {}}
+                onClick={() => setIsBottomSheetExpanded(false)}
                 onEdit={() => handleEdit(selectedLocation)}
                 onDelete={() => handleDelete(selectedLocation)}
                 onVoteChange={handleVoteChange}
