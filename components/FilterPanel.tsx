@@ -43,7 +43,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                     mySpots: e.target.checked,
                   })
                 }
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 accent-blue-600 border border-gray-300 rounded"
               />
               <span className="text-sm font-medium text-gray-700">My Spots Only</span>
             </label>
