@@ -118,21 +118,23 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
       return;
     }
 
+    alert(`File selected: ${file.name}, type: ${file.type}, size: ${file.size}`);
+
     setIsUploading(true);
     setError(null);
 
     try {
-      // Read file as blob for iOS compatibility
-      const arrayBuffer = await file.arrayBuffer();
-      const blob = new Blob([arrayBuffer], { type: file.type || "image/jpeg" });
-
       const formDataUpload = new FormData();
-      formDataUpload.append("file", blob, file.name || "photo.jpg");
+      formDataUpload.append("file", file);
+
+      alert("Sending upload request...");
 
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formDataUpload,
       });
+
+      alert(`Response status: ${response.status}`);
 
       if (!response.ok) {
         const data = await response.json();
@@ -141,6 +143,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
 
       const data = await response.json();
       setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
+      alert("Upload successful!");
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to upload image";
       setError(errorMsg);
