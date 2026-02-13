@@ -298,7 +298,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/*"
           onChange={handleImageUpload}
           className="hidden"
         />
