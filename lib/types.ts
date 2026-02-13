@@ -1,4 +1,4 @@
-export type Classification = "bash" | "race" | "crawl" | "hobby" | "airfield";
+export type Classification = "bash" | "race" | "crawl" | "hobby" | "airfield" | "boat";
 
 export interface Spot {
   id: string;
@@ -52,6 +52,7 @@ export const CLASSIFICATIONS: { value: Classification; label: string; color: str
   { value: "crawl", label: "Crawl Area", color: "#22c55e" },
   { value: "hobby", label: "Hobby Shop", color: "#f97316" },
   { value: "airfield", label: "Air Field", color: "#8b5cf6" },
+  { value: "boat", label: "Boat Spot", color: "#06b6d4" },
 ];
 
 export const REGIONS = [

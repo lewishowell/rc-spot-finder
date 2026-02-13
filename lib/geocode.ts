@@ -59,7 +59,7 @@ export function extractPlaceQuery(query: string): string | null {
       // Clean up the city name (remove leading/trailing classification words that might have been captured)
       let city = match[1].trim();
       // Remove common prefix words that aren't part of city names
-      const prefixWords = ["bash", "race", "crawl", "hobby", "airfield", "spot", "spots", "track", "tracks", "shop", "shops", "area", "areas", "find", "show", "near"];
+      const prefixWords = ["bash", "race", "crawl", "hobby", "airfield", "boat", "spot", "spots", "track", "tracks", "shop", "shops", "area", "areas", "find", "show", "near"];
       for (const word of prefixWords) {
         const regex = new RegExp(`^${word}\\s+`, "i");
         city = city.replace(regex, "");

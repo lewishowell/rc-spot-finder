@@ -75,7 +75,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     const { name, description, latitude, longitude, classification, imageUrl, region, associatedHobbyShopId } = body;
 
-    if (classification && !["bash", "race", "crawl", "hobby", "airfield"].includes(classification)) {
+    if (classification && !["bash", "race", "crawl", "hobby", "airfield", "boat"].includes(classification)) {
       return NextResponse.json(
         { error: "Invalid classification" },
         { status: 400 }

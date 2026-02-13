@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!["bash", "race", "crawl", "hobby", "airfield"].includes(classification)) {
+    if (!["bash", "race", "crawl", "hobby", "airfield", "boat"].includes(classification)) {
       return NextResponse.json(
         { error: "Invalid classification" },
         { status: 400 }
