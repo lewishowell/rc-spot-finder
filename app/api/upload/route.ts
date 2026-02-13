@@ -9,6 +9,15 @@ cloudinary.config({
 
 export async function POST(request: NextRequest) {
   try {
+    // Check Cloudinary config
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error("Missing Cloudinary environment variables");
+      return NextResponse.json(
+        { error: "Image upload not configured. Please contact support." },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
@@ -18,6 +27,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    console.log("Upload attempt:", { name: file.name, type: file.type, size: file.size });
 
     // Accept common image types including iOS HEIC/HEIF
     const allowedTypes = [
@@ -62,8 +73,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ imageUrl: result.secure_url }, { status: 201 });
   } catch (error) {
     console.error("Error uploading file:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      { error: `Upload failed: ${errorMessage}` },
       { status: 500 }
     );
   }

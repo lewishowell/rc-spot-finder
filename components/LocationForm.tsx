@@ -135,7 +135,9 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
       const data = await response.json();
       setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to upload image");
+      const errorMsg = err instanceof Error ? err.message : "Failed to upload image";
+      setError(errorMsg);
+      alert(`Upload error: ${errorMsg}`);
     } finally {
       setIsUploading(false);
     }
