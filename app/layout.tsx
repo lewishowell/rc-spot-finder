@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "RC Spot Finder",
@@ -24,7 +25,9 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className="antialiased touch-manipulation">{children}</body>
+      <body className="antialiased touch-manipulation">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Location, CLASSIFICATIONS } from "@/lib/types";
-import RatingStars from "./RatingStars";
+import VoteButtons from "./VoteButtons";
 
 interface LocationCardProps {
   location: Location;
@@ -10,6 +10,7 @@ interface LocationCardProps {
   onDelete?: () => void;
   isSelected?: boolean;
   compact?: boolean;
+  onVoteChange?: (locationId: string, upvotes: number, downvotes: number, userVote: number | null) => void;
 }
 
 export default function LocationCard({
@@ -19,8 +20,15 @@ export default function LocationCard({
   onDelete,
   isSelected = false,
   compact = false,
+  onVoteChange,
 }: LocationCardProps) {
   const classification = CLASSIFICATIONS.find((c) => c.value === location.classification);
+
+  const handleVoteChange = (upvotes: number, downvotes: number, userVote: number | null) => {
+    if (onVoteChange) {
+      onVoteChange(location.id, upvotes, downvotes, userVote);
+    }
+  };
 
   if (compact) {
     return (
@@ -42,7 +50,16 @@ export default function LocationCard({
               >
                 {classification?.label}
               </span>
-              <RatingStars rating={location.rating} size="sm" />
+              <div onClick={(e) => e.stopPropagation()}>
+                <VoteButtons
+                  locationId={location.id}
+                  upvotes={location.upvotes}
+                  downvotes={location.downvotes}
+                  userVote={location.userVote}
+                  onVoteChange={handleVoteChange}
+                  size="sm"
+                />
+              </div>
             </div>
           </div>
           {location.imageUrl && (
@@ -82,7 +99,14 @@ export default function LocationCard({
         </div>
 
         <div className="flex items-center gap-2 mb-3">
-          <RatingStars rating={location.rating} size="md" />
+          <VoteButtons
+            locationId={location.id}
+            upvotes={location.upvotes}
+            downvotes={location.downvotes}
+            userVote={location.userVote}
+            onVoteChange={handleVoteChange}
+            size="md"
+          />
           {location.region && (
             <span className="text-sm text-gray-500">• {location.region}</span>
           )}
@@ -103,6 +127,12 @@ export default function LocationCard({
           </div>
         )}
 
+        {location.user?.name && (
+          <div className="text-xs text-gray-500 mb-2">
+            Added by: {location.user.name}
+          </div>
+        )}
+
         <div className="text-xs text-gray-400 mb-4">
           <p>
             Coordinates: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
@@ -117,7 +147,7 @@ export default function LocationCard({
           >
             View on Map
           </button>
-          {onEdit && (
+          {location.isOwner && onEdit && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -128,7 +158,7 @@ export default function LocationCard({
               Edit
             </button>
           )}
-          {onDelete && (
+          {location.isOwner && onDelete && (
             <button
               onClick={(e) => {
                 e.stopPropagation();

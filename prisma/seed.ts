@@ -9,7 +9,6 @@ const locations = [
     latitude: 33.9425,
     longitude: -116.4194,
     classification: "bash",
-    rating: 5,
     region: "California",
   },
   {
@@ -18,7 +17,6 @@ const locations = [
     latitude: 34.0522,
     longitude: -118.2437,
     classification: "race",
-    rating: 4,
     region: "California",
   },
   {
@@ -27,7 +25,6 @@ const locations = [
     latitude: 36.1069,
     longitude: -112.1129,
     classification: "crawl",
-    rating: 5,
     region: "Southwest",
   },
   {
@@ -36,7 +33,6 @@ const locations = [
     latitude: 33.7175,
     longitude: -118.0532,
     classification: "bash",
-    rating: 3,
     region: "California",
   },
   {
@@ -45,7 +41,6 @@ const locations = [
     latitude: 41.8781,
     longitude: -87.6298,
     classification: "race",
-    rating: 4,
     region: "Midwest",
   },
   {
@@ -54,7 +49,6 @@ const locations = [
     latitude: 34.1478,
     longitude: -117.2946,
     classification: "crawl",
-    rating: 4,
     region: "California",
   },
   {
@@ -63,7 +57,6 @@ const locations = [
     latitude: 42.3601,
     longitude: -71.0589,
     classification: "bash",
-    rating: 4,
     region: "Northeast",
   },
   {
@@ -72,7 +65,6 @@ const locations = [
     latitude: 29.7604,
     longitude: -95.3698,
     classification: "race",
-    rating: 5,
     region: "Texas",
   },
 ];
@@ -80,9 +72,24 @@ const locations = [
 async function main() {
   console.log("Seeding database...");
 
+  // Create a demo user for seed data
+  const demoUser = await prisma.user.upsert({
+    where: { email: "demo@rcspotfinder.com" },
+    update: {},
+    create: {
+      email: "demo@rcspotfinder.com",
+      name: "RC Spot Finder Community",
+    },
+  });
+
+  console.log(`Created demo user: ${demoUser.email}`);
+
   for (const location of locations) {
     await prisma.location.create({
-      data: location,
+      data: {
+        ...location,
+        userId: demoUser.id,
+      },
     });
   }
 

@@ -9,6 +9,7 @@ import FilterPanel from "@/components/FilterPanel";
 import LocationForm from "@/components/LocationForm";
 import LocationCard from "@/components/LocationCard";
 import SearchBox from "@/components/SearchBox";
+import AuthButton from "@/components/AuthButton";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -141,6 +142,8 @@ export default function Home() {
       ...prev,
       classification: parsed.filters.classification || "all",
       region: geocodedPlace ? undefined : parsed.filters.region,
+      sortBy: parsed.filters.sortBy || prev.sortBy,
+      sortOrder: parsed.filters.sortOrder || prev.sortOrder,
     }));
 
     // On mobile, expand bottom sheet to show search results
@@ -161,6 +164,21 @@ export default function Home() {
       .filter((loc) => loc.classification === "hobby")
       .map((loc) => ({ id: loc.id, name: loc.name }));
   }, [locations]);
+
+  const handleVoteChange = useCallback((locationId: string, upvotes: number, downvotes: number, userVote: number | null) => {
+    setLocations((prev) =>
+      prev.map((loc) =>
+        loc.id === locationId
+          ? { ...loc, upvotes, downvotes, userVote }
+          : loc
+      )
+    );
+    if (selectedLocation?.id === locationId) {
+      setSelectedLocation((prev) =>
+        prev ? { ...prev, upvotes, downvotes, userVote } : null
+      );
+    }
+  }, [selectedLocation?.id]);
 
   const handleMapClick = (lat: number, lng: number) => {
     setFormMode("add");
@@ -207,7 +225,6 @@ export default function Home() {
       latitude: location.latitude,
       longitude: location.longitude,
       classification: location.classification as LocationFormData["classification"],
-      rating: location.rating,
       imageUrl: location.imageUrl || "",
       region: location.region || "",
       associatedHobbyShopId: location.associatedHobbyShopId || "",
@@ -225,7 +242,10 @@ export default function Home() {
         method: "DELETE",
       });
 
-      if (!response.ok) throw new Error("Failed to delete");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete");
+      }
 
       setLocations((prev) => prev.filter((l) => l.id !== location.id));
       if (selectedLocation?.id === location.id) {
@@ -233,7 +253,7 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error deleting location:", error);
-      alert("Failed to delete location");
+      alert(error instanceof Error ? error.message : "Failed to delete location");
     }
   };
 
@@ -326,15 +346,22 @@ export default function Home() {
 
       {/* Mobile UI Overlay - fixed outside map container to prevent iOS issues */}
       <div className="md:hidden fixed inset-0 pointer-events-none z-[1000]" style={{ transform: "translateZ(0)" }}>
-        {/* Search box */}
+        {/* Search box and auth button */}
         <div
           className="absolute top-0 left-0 right-0 p-4 pointer-events-auto"
           style={{ paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))" }}
         >
-          <SearchBox
-            onSearch={handleSearch}
-            placeholder="Try: 'bash spots in California' or '5 star tracks'"
-          />
+          <div className="flex gap-2 items-start">
+            <div className="flex-1">
+              <SearchBox
+                onSearch={handleSearch}
+                placeholder="Try: 'bash spots in California' or 'top voted tracks'"
+              />
+            </div>
+            <div className="flex-shrink-0">
+              <AuthButton />
+            </div>
+          </div>
         </div>
 
         {/* Add button */}
@@ -349,12 +376,15 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Desktop search box - separate from mobile */}
-      <div className="hidden md:block absolute top-4 left-4 w-96 z-[1000]">
-        <SearchBox
-          onSearch={handleSearch}
-          placeholder="Try: 'bash spots in California' or '5 star tracks'"
-        />
+      {/* Desktop search box and auth - separate from mobile */}
+      <div className="hidden md:flex absolute top-4 left-4 gap-3 items-start z-[1000]">
+        <div className="w-96">
+          <SearchBox
+            onSearch={handleSearch}
+            placeholder="Try: 'bash spots in California' or 'top voted tracks'"
+          />
+        </div>
+        <AuthButton />
       </div>
 
       {/* Desktop Sidebar */}
@@ -409,6 +439,7 @@ export default function Home() {
               onClick={() => {}}
               onEdit={() => handleEdit(selectedLocation)}
               onDelete={() => handleDelete(selectedLocation)}
+              onVoteChange={handleVoteChange}
               isSelected
             />
           ) : (
@@ -424,6 +455,7 @@ export default function Home() {
                     key={loc.id}
                     location={loc}
                     onClick={() => handleMarkerClick(loc)}
+                    onVoteChange={handleVoteChange}
                     isSelected={false}
                     compact
                   />
@@ -490,6 +522,7 @@ export default function Home() {
                 onClick={() => {}}
                 onEdit={() => handleEdit(selectedLocation)}
                 onDelete={() => handleDelete(selectedLocation)}
+                onVoteChange={handleVoteChange}
                 isSelected
               />
             ) : (
@@ -506,6 +539,7 @@ export default function Home() {
                       key={loc.id}
                       location={loc}
                       onClick={() => handleMarkerClick(loc)}
+                      onVoteChange={handleVoteChange}
                       isSelected={false}
                       compact
                     />

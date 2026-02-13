@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
+    const userId = session?.user?.id;
+
     const searchParams = request.nextUrl.searchParams;
     const classification = searchParams.get("classification");
     const region = searchParams.get("region");
@@ -21,15 +25,52 @@ export async function GET(request: NextRequest) {
 
     const locations = await prisma.location.findMany({
       where,
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+      orderBy: sortBy === "votes"
+        ? undefined // We'll sort in memory for votes
+        : { [sortBy]: sortOrder },
       include: {
         associatedHobbyShop: true,
+        votes: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(locations);
+    // Transform locations to include vote counts and user's vote
+    const transformedLocations = locations.map((loc) => {
+      const upvotes = loc.votes.filter((v) => v.value === 1).length;
+      const downvotes = loc.votes.filter((v) => v.value === -1).length;
+      const userVote = userId
+        ? loc.votes.find((v) => v.userId === userId)?.value ?? null
+        : null;
+      const isOwner = userId === loc.userId;
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { votes, ...locationWithoutVotes } = loc;
+
+      return {
+        ...locationWithoutVotes,
+        upvotes,
+        downvotes,
+        userVote,
+        isOwner,
+      };
+    });
+
+    // Sort by votes if requested
+    if (sortBy === "votes") {
+      transformedLocations.sort((a, b) => {
+        const aScore = a.upvotes - a.downvotes;
+        const bScore = b.upvotes - b.downvotes;
+        return sortOrder === "desc" ? bScore - aScore : aScore - bScore;
+      });
+    }
+
+    return NextResponse.json(transformedLocations);
   } catch (error) {
     console.error("Error fetching locations:", error);
     return NextResponse.json(
@@ -41,20 +82,21 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const session = await auth();
 
-    const { name, description, latitude, longitude, classification, rating, imageUrl, region, associatedHobbyShopId } = body;
-
-    if (!name || latitude === undefined || longitude === undefined || !classification || rating === undefined) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
+        { error: "Authentication required" },
+        { status: 401 }
       );
     }
 
-    if (rating < 1 || rating > 5) {
+    const body = await request.json();
+    const { name, description, latitude, longitude, classification, imageUrl, region, associatedHobbyShopId } = body;
+
+    if (!name || latitude === undefined || longitude === undefined || !classification) {
       return NextResponse.json(
-        { error: "Rating must be between 1 and 5" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -73,17 +115,29 @@ export async function POST(request: NextRequest) {
         latitude,
         longitude,
         classification,
-        rating,
         imageUrl: imageUrl || null,
         region: region || null,
         associatedHobbyShopId: associatedHobbyShopId || null,
+        userId: session.user.id,
       },
       include: {
         associatedHobbyShop: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(location, { status: 201 });
+    return NextResponse.json({
+      ...location,
+      upvotes: 0,
+      downvotes: 0,
+      userVote: null,
+      isOwner: true,
+    }, { status: 201 });
   } catch (error) {
     console.error("Error creating location:", error);
     return NextResponse.json(

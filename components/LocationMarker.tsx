@@ -3,7 +3,6 @@
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { Location, CLASSIFICATIONS } from "@/lib/types";
-import RatingStars from "./RatingStars";
 
 interface LocationMarkerProps {
   location: Location;
@@ -15,6 +14,7 @@ interface LocationMarkerProps {
 
 export default function LocationMarker({ location, icon, onClick, onViewDetails, isSelected }: LocationMarkerProps) {
   const classification = CLASSIFICATIONS.find((c) => c.value === location.classification);
+  const score = location.upvotes - location.downvotes;
 
   return (
     <Marker
@@ -34,7 +34,9 @@ export default function LocationMarker({ location, icon, onClick, onViewDetails,
             >
               {classification?.label}
             </span>
-            <RatingStars rating={location.rating} size="sm" />
+            <span className={`text-sm font-medium ${score > 0 ? "text-green-600" : score < 0 ? "text-red-600" : "text-gray-500"}`}>
+              {score > 0 ? `+${score}` : score} votes
+            </span>
           </div>
           {location.description && (
             <p className="text-sm text-gray-600 mb-2 line-clamp-2">{location.description}</p>

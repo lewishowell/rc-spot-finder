@@ -184,21 +184,6 @@ const REGION_ALIASES: Record<string, string> = {
   pnw: "Pacific Northwest",
 };
 
-const RATING_KEYWORDS: Record<string, number> = {
-  "5 star": 5,
-  "5-star": 5,
-  "five star": 5,
-  "4 star": 4,
-  "4-star": 4,
-  "four star": 4,
-  best: 5,
-  top: 5,
-  "highly rated": 4,
-  excellent: 5,
-  great: 4,
-  good: 3,
-};
-
 const STOP_WORDS = [
   "show", "me", "all", "the", "find", "search", "for", "get",
   "list", "display", "where", "are", "is", "in", "at", "near",
@@ -206,6 +191,7 @@ const STOP_WORDS = [
   "place", "areas", "area", "sites", "site", "a", "an", "and",
   "with", "that", "have", "has", "please", "can", "you", "i",
   "want", "to", "see", "looking", "look", "give", "any",
+  "top", "best", "popular", "voted", "upvoted",
 ];
 
 export function parseSearchQuery(query: string): ParsedSearch {
@@ -239,13 +225,10 @@ export function parseSearchQuery(query: string): ParsedSearch {
     }
   }
 
-  // Check for rating keywords
-  let minRating: number | undefined;
-  for (const [keyword, rating] of Object.entries(RATING_KEYWORDS)) {
-    if (lowerQuery.includes(keyword)) {
-      minRating = rating;
-      break;
-    }
+  // Check for vote-related keywords to set sort
+  if (lowerQuery.includes("top") || lowerQuery.includes("best") || lowerQuery.includes("popular") || lowerQuery.includes("voted") || lowerQuery.includes("upvoted")) {
+    filters.sortBy = "votes";
+    filters.sortOrder = "desc";
   }
 
   // Extract remaining search terms (for name/description matching)
@@ -268,15 +251,9 @@ export function parseSearchQuery(query: string): ParsedSearch {
 }
 
 export function matchesSearch(
-  location: { name: string; description: string | null; rating: number },
-  searchTerms: string[],
-  minRating?: number
+  location: { name: string; description: string | null },
+  searchTerms: string[]
 ): boolean {
-  // Check rating
-  if (minRating && location.rating < minRating) {
-    return false;
-  }
-
   // If no search terms, match all
   if (searchTerms.length === 0) {
     return true;

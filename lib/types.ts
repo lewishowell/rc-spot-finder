@@ -7,13 +7,21 @@ export interface Spot {
   latitude: number;
   longitude: number;
   classification: Classification;
-  rating: number;
   imageUrl: string | null;
   region: string | null;
   createdAt: Date;
   updatedAt: Date;
   associatedHobbyShopId: string | null;
   associatedHobbyShop?: Spot | null;
+  userId: string;
+  user?: {
+    id: string;
+    name: string | null;
+  };
+  upvotes: number;
+  downvotes: number;
+  userVote: number | null;
+  isOwner: boolean;
 }
 
 // Re-export as Location for component compatibility
@@ -25,7 +33,6 @@ export interface LocationFormData {
   latitude: number;
   longitude: number;
   classification: Classification;
-  rating: number;
   imageUrl?: string;
   region?: string;
   associatedHobbyShopId?: string;
@@ -34,7 +41,7 @@ export interface LocationFormData {
 export interface FilterOptions {
   classification?: Classification | "all";
   region?: string;
-  sortBy?: "name" | "rating" | "createdAt";
+  sortBy?: "name" | "votes" | "createdAt";
   sortOrder?: "asc" | "desc";
 }
 
