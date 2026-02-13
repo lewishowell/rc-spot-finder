@@ -287,7 +287,8 @@ export default function Home() {
     setSelectedLocation(location);
     setShowForm(false);
     setNewMarkerPosition(null);
-    setIsBottomSheetExpanded(true); // Expand bottom sheet to show details
+    setIsBottomSheetExpanded(true); // Expand bottom sheet on mobile
+    setIsSidebarOpen(true); // Open sidebar on desktop
   };
 
   const handleHobbyShopClick = useCallback((hobbyShop: Spot) => {

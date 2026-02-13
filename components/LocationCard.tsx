@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Location, CLASSIFICATIONS } from "@/lib/types";
 import VoteButtons from "./VoteButtons";
 
@@ -26,7 +26,19 @@ export default function LocationCard({
   onHobbyShopClick,
 }: LocationCardProps) {
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "shared">("idle");
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const prevLocationId = useRef<string | null>(null);
   const classification = CLASSIFICATIONS.find((c) => c.value === location.classification);
+
+  // Trigger highlight animation when a new location is selected (non-compact view only)
+  useEffect(() => {
+    if (isSelected && !compact && location.id !== prevLocationId.current) {
+      setIsHighlighted(true);
+      const timer = setTimeout(() => setIsHighlighted(false), 1000);
+      prevLocationId.current = location.id;
+      return () => clearTimeout(timer);
+    }
+  }, [location.id, isSelected, compact]);
 
   const handleVoteChange = (upvotes: number, downvotes: number, userVote: number | null) => {
     if (onVoteChange) {
@@ -125,9 +137,9 @@ export default function LocationCard({
 
   return (
     <div
-      className={`bg-white rounded-lg border overflow-hidden ${
+      className={`bg-white rounded-lg border overflow-hidden transition-all duration-300 ${
         isSelected ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-200"
-      }`}
+      } ${isHighlighted ? "ring-4 ring-blue-400 ring-opacity-75 animate-pulse" : ""}`}
     >
       {location.imageUrl && (
         <img
