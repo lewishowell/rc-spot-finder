@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,30 +27,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 10 * 1024 * 1024; // 10MB (Cloudinary will optimize)
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: "File too large. Maximum size: 5MB" },
+        { error: "File too large. Maximum size: 10MB" },
         { status: 400 }
       );
     }
 
+    // Convert file to base64 for Cloudinary upload
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
+    // Upload to Cloudinary with automatic optimization
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: "rc-spot-finder",
+      transformation: [
+        { width: 1200, height: 1200, crop: "limit" }, // Max dimensions
+        { quality: "auto:good" }, // Automatic quality optimization
+        { fetch_format: "auto" }, // Serve WebP when supported
+      ],
+    });
 
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const extension = file.name.split(".").pop() || "jpg";
-    const filename = `${uniqueSuffix}.${extension}`;
-    const filepath = path.join(uploadDir, filename);
-
-    await writeFile(filepath, buffer);
-
-    const imageUrl = `/uploads/${filename}`;
-
-    return NextResponse.json({ imageUrl }, { status: 201 });
+    return NextResponse.json({ imageUrl: result.secure_url }, { status: 201 });
   } catch (error) {
     console.error("Error uploading file:", error);
     return NextResponse.json(
