@@ -33,8 +33,9 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
       {isOpen && (
         <div className="p-4 space-y-4 border-t">
           {session && (
-            <label className="flex items-center gap-2 cursor-pointer">
+            <div className="flex items-center gap-2">
               <input
+                id="mySpots"
                 type="checkbox"
                 checked={filters.mySpots || false}
                 onChange={(e) =>
@@ -43,10 +44,12 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                     mySpots: e.target.checked,
                   })
                 }
-                className="w-4 h-4 accent-blue-600 border border-gray-300 rounded"
+                className="w-4 h-4 accent-blue-600 cursor-pointer"
               />
-              <span className="text-sm font-medium text-gray-700">My Spots Only</span>
-            </label>
+              <label htmlFor="mySpots" className="text-sm font-medium text-gray-700 cursor-pointer">
+                My Spots Only
+              </label>
+            </div>
           )}
 
           <div>
