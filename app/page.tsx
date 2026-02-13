@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { Spot, LocationFormData, FilterOptions } from "@/lib/types";
 import { parseSearchQuery, matchesSearch } from "@/lib/searchParser";
@@ -21,9 +22,12 @@ const Map = dynamic(() => import("@/components/Map"), {
 });
 
 export default function Home() {
+  const { data: session } = useSession();
   const [locations, setLocations] = useState<Spot[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Spot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [defaultRegion, setDefaultRegion] = useState<string | null>(null);
+  const [defaultRegionLoaded, setDefaultRegionLoaded] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     classification: "all",
     sortBy: "createdAt",
@@ -99,6 +103,63 @@ export default function Home() {
   useEffect(() => {
     fetchLocations();
   }, [fetchLocations]);
+
+  // Load default region on mount
+  useEffect(() => {
+    const loadDefaultRegion = async () => {
+      if (session?.user) {
+        // Try to load from API for logged-in users
+        try {
+          const response = await fetch("/api/user/preferences");
+          if (response.ok) {
+            const data = await response.json();
+            if (data.defaultRegion) {
+              setDefaultRegion(data.defaultRegion);
+              setFilters((prev) => ({ ...prev, region: data.defaultRegion }));
+            }
+          }
+        } catch (error) {
+          console.error("Error loading preferences:", error);
+        }
+      } else {
+        // Use localStorage for guests
+        const stored = localStorage.getItem("defaultRegion");
+        if (stored) {
+          setDefaultRegion(stored);
+          setFilters((prev) => ({ ...prev, region: stored }));
+        }
+      }
+      setDefaultRegionLoaded(true);
+    };
+
+    loadDefaultRegion();
+  }, [session?.user]);
+
+  const handleSetDefaultRegion = useCallback(async (region: string | null) => {
+    if (session?.user) {
+      // Save to API for logged-in users
+      try {
+        const response = await fetch("/api/user/preferences", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ defaultRegion: region }),
+        });
+        if (response.ok) {
+          setDefaultRegion(region);
+        }
+      } catch (error) {
+        console.error("Error saving preferences:", error);
+      }
+    } else {
+      // Save to localStorage for guests
+      if (region) {
+        localStorage.setItem("defaultRegion", region);
+      } else {
+        localStorage.removeItem("defaultRegion");
+      }
+      setDefaultRegion(region);
+    }
+  }, [session?.user]);
 
   const handleSearch = useCallback(async (query: string) => {
     setSearchQuery(query);
@@ -411,6 +472,8 @@ export default function Home() {
             onFiltersChange={setFilters}
             isOpen={isFilterOpen}
             onToggle={() => setIsFilterOpen(!isFilterOpen)}
+            defaultRegion={defaultRegion}
+            onSetDefaultRegion={handleSetDefaultRegion}
           />
         </div>
 
@@ -535,6 +598,8 @@ export default function Home() {
                   onFiltersChange={setFilters}
                   isOpen={isFilterOpen}
                   onToggle={() => setIsFilterOpen(!isFilterOpen)}
+                  defaultRegion={defaultRegion}
+                  onSetDefaultRegion={handleSetDefaultRegion}
                 />
                 <div className="space-y-2">
                   {filteredLocations.map((loc) => (

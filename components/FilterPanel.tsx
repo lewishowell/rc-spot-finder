@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { FilterOptions, CLASSIFICATIONS, REGIONS } from "@/lib/types";
 
@@ -8,10 +9,45 @@ interface FilterPanelProps {
   onFiltersChange: (filters: FilterOptions) => void;
   isOpen: boolean;
   onToggle: () => void;
+  defaultRegion?: string | null;
+  onSetDefaultRegion?: (region: string | null) => void;
 }
 
-export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle }: FilterPanelProps) {
+export default function FilterPanel({
+  filters,
+  onFiltersChange,
+  isOpen,
+  onToggle,
+  defaultRegion,
+  onSetDefaultRegion,
+}: FilterPanelProps) {
   const { data: session } = useSession();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSetDefaultRegion = async () => {
+    if (!onSetDefaultRegion) return;
+
+    setIsSaving(true);
+    try {
+      const newDefault = filters.region || null;
+      await onSetDefaultRegion(newDefault);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleClearDefaultRegion = async () => {
+    if (!onSetDefaultRegion) return;
+
+    setIsSaving(true);
+    try {
+      await onSetDefaultRegion(null);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const isCurrentRegionDefault = filters.region === defaultRegion;
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -76,9 +112,16 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-black mb-1">
-              Region
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-semibold text-black">
+                Region
+              </label>
+              {defaultRegion && (
+                <span className="text-xs text-blue-600 font-medium">
+                  Default: {defaultRegion}
+                </span>
+              )}
+            </div>
             <select
               value={filters.region || "all"}
               onChange={(e) =>
@@ -96,6 +139,29 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                 </option>
               ))}
             </select>
+
+            {session && onSetDefaultRegion && (
+              <div className="mt-2 flex gap-2">
+                {filters.region && !isCurrentRegionDefault && (
+                  <button
+                    onClick={handleSetDefaultRegion}
+                    disabled={isSaving}
+                    className="flex-1 px-3 py-1.5 text-xs bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    {isSaving ? "Saving..." : "Set as Default"}
+                  </button>
+                )}
+                {defaultRegion && (
+                  <button
+                    onClick={handleClearDefaultRegion}
+                    disabled={isSaving}
+                    className="flex-1 px-3 py-1.5 text-xs bg-white text-black font-medium border-2 border-gray-500 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    {isSaving ? "Saving..." : "Clear Default"}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
