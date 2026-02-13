@@ -58,7 +58,27 @@ export async function POST(request: NextRequest) {
     // Convert file to base64 for Cloudinary upload
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
+
+    // Determine mime type - iOS sometimes doesn't provide it
+    let mimeType = file.type;
+    if (!mimeType || mimeType === "application/octet-stream") {
+      // Detect from magic bytes
+      const header = buffer.slice(0, 4).toString("hex");
+      if (header.startsWith("ffd8ff")) {
+        mimeType = "image/jpeg";
+      } else if (header.startsWith("89504e47")) {
+        mimeType = "image/png";
+      } else if (header.startsWith("47494638")) {
+        mimeType = "image/gif";
+      } else if (header.startsWith("52494646")) {
+        mimeType = "image/webp";
+      } else {
+        // Default to JPEG for unknown (common for HEIC converted by iOS)
+        mimeType = "image/jpeg";
+      }
+    }
+
+    const base64 = `data:${mimeType};base64,${buffer.toString("base64")}`;
 
     // Upload to Cloudinary with automatic optimization
     const result = await cloudinary.uploader.upload(base64, {
