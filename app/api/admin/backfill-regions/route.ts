@@ -7,14 +7,15 @@ import { getRegionFromCoordinates } from "@/lib/geocode";
 // Backfill regions for all spots that don't have one
 export async function POST() {
   try {
-    // Temporarily disabled auth for one-time backfill
-    // const session = await auth();
-    // if (!session?.user?.id) {
-    //   return NextResponse.json(
-    //     { error: "Authentication required" },
-    //     { status: 401 }
-    //   );
-    // }
+    const session = await auth();
+
+    // Only allow authenticated users to run this
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
 
     // Find all locations without a region
     const locationsWithoutRegion = await prisma.location.findMany({
