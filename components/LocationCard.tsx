@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Location, CLASSIFICATIONS } from "@/lib/types";
 import VoteButtons from "./VoteButtons";
 
@@ -24,11 +25,57 @@ export default function LocationCard({
   onVoteChange,
   onHobbyShopClick,
 }: LocationCardProps) {
+  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "shared">("idle");
   const classification = CLASSIFICATIONS.find((c) => c.value === location.classification);
 
   const handleVoteChange = (upvotes: number, downvotes: number, userVote: number | null) => {
     if (onVoteChange) {
       onVoteChange(location.id, upvotes, downvotes, userVote);
+    }
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const shareUrl = `${window.location.origin}?spot=${location.id}`;
+    const shareData = {
+      title: location.name,
+      text: `Check out ${location.name} on RC Spot Finder!`,
+      url: shareUrl,
+    };
+
+    // Try native share API first (iOS, Android, some desktop browsers)
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+        setShareStatus("shared");
+      } catch (err) {
+        // User cancelled or share failed, fall back to clipboard
+        if ((err as Error).name !== "AbortError") {
+          await copyToClipboard(shareUrl);
+        }
+      }
+    } else {
+      // Fall back to clipboard
+      await copyToClipboard(shareUrl);
+    }
+  };
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareStatus("copied");
+      setTimeout(() => setShareStatus("idle"), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setShareStatus("copied");
+      setTimeout(() => setShareStatus("idle"), 2000);
     }
   };
 
@@ -159,6 +206,27 @@ export default function LocationCard({
             className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
           >
             View on Map
+          </button>
+          <button
+            onClick={handleShare}
+            className="px-3 py-2 bg-white border-2 border-gray-500 text-sm rounded-md hover:bg-gray-50 transition-colors flex items-center gap-1"
+            title="Share this spot"
+          >
+            {shareStatus === "copied" ? (
+              <>
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-green-600 font-medium">Copied!</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                <span className="text-black font-medium">Share</span>
+              </>
+            )}
           </button>
           {location.isOwner && onEdit && (
             <button

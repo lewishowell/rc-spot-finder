@@ -104,6 +104,24 @@ export default function Home() {
     fetchLocations();
   }, [fetchLocations]);
 
+  // Handle shared spot URL parameter (?spot=<id>)
+  useEffect(() => {
+    if (locations.length === 0) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const spotId = urlParams.get("spot");
+
+    if (spotId) {
+      const spot = locations.find((loc) => loc.id === spotId);
+      if (spot) {
+        setSelectedLocation(spot);
+        setIsBottomSheetExpanded(true);
+        // Clear the URL parameter without reloading
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, [locations]);
+
   // Load default region on mount
   useEffect(() => {
     const loadDefaultRegion = async () => {
