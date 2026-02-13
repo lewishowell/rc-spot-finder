@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
+import imageCompression from "browser-image-compression";
 import { LocationFormData, CLASSIFICATIONS, REGIONS } from "@/lib/types";
 
 interface HobbyShop {
@@ -113,41 +114,43 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) {
-      alert("No file selected");
-      return;
-    }
-
-    alert(`File selected: ${file.name}, type: ${file.type}, size: ${file.size}`);
+    if (!file) return;
 
     setIsUploading(true);
     setError(null);
 
     try {
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
+      // Compress image before upload to stay under Vercel's 4.5MB limit
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      });
 
-      alert("Sending upload request...");
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", compressedFile);
 
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formDataUpload,
       });
 
-      alert(`Response status: ${response.status}`);
-
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Upload failed");
+        // Handle non-JSON error responses
+        const contentType = response.headers.get("content-type");
+        if (contentType?.includes("application/json")) {
+          const data = await response.json();
+          throw new Error(data.error || "Upload failed");
+        } else {
+          throw new Error(`Upload failed (${response.status})`);
+        }
       }
 
       const data = await response.json();
       setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
-      alert("Upload successful!");
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to upload image";
       setError(errorMsg);
-      alert(`Upload error: ${errorMsg}`);
     } finally {
       setIsUploading(false);
     }
