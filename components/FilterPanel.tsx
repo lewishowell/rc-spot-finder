@@ -33,22 +33,22 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
       {isOpen && (
         <div className="p-4 space-y-4 border-t">
           {session && (
-            <div className="flex items-center gap-2">
-              <input
-                id="mySpots"
-                type="checkbox"
-                checked={filters.mySpots || false}
-                onChange={(e) =>
-                  onFiltersChange({
-                    ...filters,
-                    mySpots: e.target.checked,
-                  })
-                }
-                className="w-4 h-4 accent-blue-600 cursor-pointer"
-              />
-              <label htmlFor="mySpots" className="text-sm font-medium text-gray-700 cursor-pointer">
-                My Spots Only
-              </label>
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => onFiltersChange({ ...filters, mySpots: !filters.mySpots })}
+            >
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                filters.mySpots
+                  ? "bg-blue-600 border-blue-600"
+                  : "bg-white border-gray-300"
+              }`}>
+                {filters.mySpots && (
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm font-medium text-gray-700">My Spots Only</span>
             </div>
           )}
 
