@@ -153,7 +153,7 @@ export default function LocationCard({
                 e.stopPropagation();
                 onEdit();
               }}
-              className="px-3 py-2 border border-gray-300 text-sm rounded-md hover:bg-gray-50 transition-colors"
+              className="px-3 py-2 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
             >
               Edit
             </button>

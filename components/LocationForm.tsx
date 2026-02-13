@@ -161,7 +161,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
           type="text"
           value={formData.name}
           onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
           placeholder="Enter spot name"
         />
       </div>
@@ -174,7 +174,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
           value={formData.description}
           onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 resize-none"
           placeholder="Describe this spot..."
         />
       </div>
@@ -207,7 +207,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
                   onPositionChange(lat, formData.longitude);
                 }
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               placeholder="Latitude"
             />
           </div>
@@ -223,7 +223,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
                   onPositionChange(formData.latitude, lng);
                 }
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               placeholder="Longitude"
             />
           </div>
@@ -260,7 +260,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
         <select
           value={formData.region}
           onChange={(e) => setFormData((prev) => ({ ...prev, region: e.target.value }))}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         >
           <option value="">Select a region</option>
           {REGIONS.map((r) => (
@@ -279,7 +279,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
           <select
             value={formData.associatedHobbyShopId || ""}
             onChange={(e) => setFormData((prev) => ({ ...prev, associatedHobbyShopId: e.target.value || undefined }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
           >
             <option value="">None</option>
             {hobbyShops.map((shop) => (
