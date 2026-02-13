@@ -48,12 +48,12 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                   </svg>
                 )}
               </div>
-              <span className="text-sm font-medium text-gray-700">My Spots Only</span>
+              <span className="text-sm font-semibold text-black">My Spots Only</span>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-black mb-1">
               Classification
             </label>
             <select
@@ -64,7 +64,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                   classification: e.target.value as FilterOptions["classification"],
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md text-black font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Types</option>
               {CLASSIFICATIONS.map((c) => (
@@ -76,7 +76,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-black mb-1">
               Region
             </label>
             <select
@@ -87,7 +87,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                   region: e.target.value === "all" ? undefined : e.target.value,
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md text-black font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Regions</option>
               {REGIONS.map((r) => (
@@ -99,7 +99,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-black mb-1">
               Sort By
             </label>
             <select
@@ -110,7 +110,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                   sortBy: e.target.value as FilterOptions["sortBy"],
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md text-black font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="createdAt">Date Added</option>
               <option value="votes">Community Votes</option>
@@ -119,7 +119,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-black mb-1">
               Order
             </label>
             <select
@@ -130,7 +130,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                   sortOrder: e.target.value as FilterOptions["sortOrder"],
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md text-black font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="desc">Descending</option>
               <option value="asc">Ascending</option>
@@ -147,7 +147,7 @@ export default function FilterPanel({ filters, onFiltersChange, isOpen, onToggle
                 mySpots: false,
               })
             }
-            className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="w-full px-4 py-2 text-sm text-black font-medium bg-white border-2 border-gray-500 rounded-md hover:bg-gray-50 transition-colors"
           >
             Reset Filters
           </button>
