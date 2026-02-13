@@ -2,6 +2,8 @@
 
 A mobile-friendly web application for discovering and sharing RC car, truck, boat, and crawler spots.
 
+**Live at: [rcspotfinder.com](https://rcspotfinder.com)**
+
 ## Features
 
 ### Core Features
@@ -10,8 +12,10 @@ A mobile-friendly web application for discovering and sharing RC car, truck, boa
 - **Natural Language Search** - Search using phrases like "bash spots in portland, or" or "hobby shops phoenix, az"
 - **Place Geocoding** - Automatically zooms to specific locations when searching by city/state
 - **Nearest Hobby Shop** - Associate RC spots with their nearest hobby shop (clickable link to view shop details)
+- **Get Directions** - One-tap directions to any spot via Google Maps
+- **Auto-Detect Region** - Regions automatically assigned based on coordinates
 - **Image Upload** - Add photos with automatic optimization via Cloudinary
-- **Mobile Responsive** - Swipeable bottom sheet on mobile, sidebar on desktop
+- **Mobile Responsive** - Swipeable bottom sheet on mobile, collapsible sidebar on desktop
 - **Draggable Markers** - Precisely position locations by dragging the map marker
 
 ### User Accounts & Authentication
@@ -126,6 +130,13 @@ Use natural language to search:
 3. Click "Set as Default"
 4. The map will load centered on this region every time you visit
 
+### Getting Directions
+
+1. Open any spot's details
+2. Click the small map icon next to the coordinates
+3. Opens Google Maps with directions to the spot
+4. Works on mobile (opens Maps app) and desktop (opens in browser)
+
 ### Sharing a Spot
 
 1. Open any spot's details
@@ -198,7 +209,7 @@ rc-spot-finder/
 4. Create OAuth Client ID (Web application)
 5. Add authorized redirect URIs:
    - `http://localhost:3000/api/auth/callback/google`
-   - `https://your-domain.vercel.app/api/auth/callback/google`
+   - `https://rcspotfinder.com/api/auth/callback/google`
 
 ### Cloudinary Setup
 
