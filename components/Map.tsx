@@ -181,6 +181,7 @@ function getMarkerIcon(classification: Classification): L.DivIcon {
     crawl: "#22c55e",
     hobby: "#f97316",
     airfield: "#8b5cf6",
+    boat: "#06b6d4",
   };
 
   const color = colors[classification];
