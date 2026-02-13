@@ -75,7 +75,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          <span className="text-sm font-medium text-gray-700">Sign in with Google</span>
+          <span className="text-sm font-semibold text-black">Sign in with Google</span>
         </button>
         <button
           onClick={onCancel}
@@ -154,34 +154,34 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-black mb-1">
           Name *
         </label>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-          className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+          className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black opacity-100"
           placeholder="Enter spot name"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-black mb-1">
           Description
         </label>
         <textarea
           value={formData.description}
           onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
           rows={3}
-          className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 resize-none"
+          className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black opacity-100 resize-none"
           placeholder="Describe this spot..."
         />
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-semibold text-black">
             Location
           </label>
           {formData.latitude === 0 && formData.longitude === 0 ? (
@@ -207,7 +207,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
                   onPositionChange(lat, formData.longitude);
                 }
               }}
-              className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black opacity-100"
               placeholder="Latitude"
             />
           </div>
@@ -223,7 +223,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
                   onPositionChange(formData.latitude, lng);
                 }
               }}
-              className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black opacity-100"
               placeholder="Longitude"
             />
           </div>
@@ -231,7 +231,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-black mb-1">
           Classification *
         </label>
         <div className="flex flex-wrap gap-2">
@@ -254,13 +254,13 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-black mb-1">
           Region
         </label>
         <select
           value={formData.region}
           onChange={(e) => setFormData((prev) => ({ ...prev, region: e.target.value }))}
-          className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+          className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black opacity-100"
         >
           <option value="">Select a region</option>
           {REGIONS.map((r) => (
@@ -273,13 +273,13 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
 
       {formData.classification !== "hobby" && hobbyShops.length > 0 && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-black mb-1">
             Nearest Hobby Shop
           </label>
           <select
             value={formData.associatedHobbyShopId || ""}
             onChange={(e) => setFormData((prev) => ({ ...prev, associatedHobbyShopId: e.target.value || undefined }))}
-            className="w-full px-3 py-2 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+            className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black opacity-100"
           >
             <option value="">None</option>
             {hobbyShops.map((shop) => (
@@ -292,7 +292,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-black mb-1">
           Image
         </label>
         <input
