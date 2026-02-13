@@ -352,14 +352,14 @@ export default function Home() {
           style={{ paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))" }}
         >
           <div className="flex gap-2 items-start">
+            <div className="flex-shrink-0">
+              <AuthButton />
+            </div>
             <div className="flex-1">
               <SearchBox
                 onSearch={handleSearch}
                 placeholder="Try: 'bash spots in California' or 'top voted tracks'"
               />
-            </div>
-            <div className="flex-shrink-0">
-              <AuthButton />
             </div>
           </div>
         </div>
@@ -378,13 +378,13 @@ export default function Home() {
 
       {/* Desktop search box and auth - separate from mobile */}
       <div className="hidden md:flex absolute top-4 left-4 gap-3 items-start z-[1000]">
+        <AuthButton />
         <div className="w-96">
           <SearchBox
             onSearch={handleSearch}
             placeholder="Try: 'bash spots in California' or 'top voted tracks'"
           />
         </div>
-        <AuthButton />
       </div>
 
       {/* Desktop Sidebar */}
