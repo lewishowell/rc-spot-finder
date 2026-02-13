@@ -37,7 +37,7 @@ export default function Home() {
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState<"add" | "edit">("add");
   const [formInitialData, setFormInitialData] = useState<Partial<LocationFormData>>({});
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState(false);
   const [newMarkerPosition, setNewMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [shouldResetView, setShouldResetView] = useState(false);
@@ -263,6 +263,17 @@ export default function Home() {
   }, [selectedLocation?.id]);
 
   const handleMapClick = (lat: number, lng: number) => {
+    // If viewing a spot or form is open, first click dismisses instead of dropping a pin
+    if (selectedLocation || showForm) {
+      setSelectedLocation(null);
+      setShowForm(false);
+      setNewMarkerPosition(null);
+      setIsSidebarOpen(false);
+      setIsBottomSheetExpanded(false);
+      return;
+    }
+
+    // Otherwise, drop a new pin
     setFormMode("add");
     setFormInitialData({ latitude: lat, longitude: lng });
     setNewMarkerPosition({ lat, lng });
