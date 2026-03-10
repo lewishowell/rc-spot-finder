@@ -22,6 +22,10 @@ export async function GET() {
         profileVisibility: true,
         name: true,
         image: true,
+        createdAt: true,
+        _count: {
+          select: { locations: true },
+        },
       },
     });
 
@@ -32,7 +36,10 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json({
+      ...user,
+      spotsCount: user._count.locations,
+    });
   } catch (error) {
     console.error("Error fetching profile:", error);
     return NextResponse.json(
