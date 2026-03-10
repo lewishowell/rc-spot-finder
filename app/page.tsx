@@ -649,6 +649,7 @@ export default function Home() {
               totalSpots={locations.length}
               totalRegions={totalRegions}
               newestSpotName={newestSpotName}
+              onNewestSpotClick={newestSpot ? () => handleFeaturedSpotClick(newestSpot) : undefined}
             />
           )}
         </div>
