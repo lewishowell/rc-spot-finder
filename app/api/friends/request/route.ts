@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyUser } from "@/lib/notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -132,7 +133,16 @@ export async function POST(request: NextRequest) {
         receiverId,
         status: "pending",
       },
+      include: {
+        sender: { select: { name: true, username: true } },
+      },
     });
+
+    // Notify the receiver
+    const senderName = friendship.sender?.username
+      ? `@${friendship.sender.username}`
+      : friendship.sender?.name || "Someone";
+    notifyUser(receiverId, userId, "friend_request", `${senderName} sent you a friend request`);
 
     return NextResponse.json(friendship, { status: 201 });
   } catch (error) {

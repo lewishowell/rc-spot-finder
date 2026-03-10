@@ -917,6 +917,10 @@ export default function Home() {
                 setShowNotifications(false);
                 setShowUserProfile(userId);
               }}
+              onViewFriends={() => {
+                setShowNotifications(false);
+                setShowFriends(true);
+              }}
             />
           </div>
         </div>

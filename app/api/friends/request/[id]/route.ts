@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyUser } from "@/lib/notifications";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -59,7 +60,18 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       data: {
         status: action === "accept" ? "accepted" : "rejected",
       },
+      include: {
+        receiver: { select: { name: true, username: true } },
+      },
     });
+
+    // Notify the sender when their request is accepted
+    if (action === "accept") {
+      const accepterName = updated.receiver?.username
+        ? `@${updated.receiver.username}`
+        : updated.receiver?.name || "Someone";
+      notifyUser(friendship.senderId, session.user.id, "friend_accepted", `${accepterName} accepted your friend request`);
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

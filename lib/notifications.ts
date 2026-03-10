@@ -35,3 +35,25 @@ export async function notifyFriends(
     console.error("Error creating notifications:", error);
   }
 }
+
+export async function notifyUser(
+  userId: string,
+  actorId: string,
+  type: string,
+  message: string,
+  linkId?: string
+) {
+  try {
+    await prisma.notification.create({
+      data: {
+        userId,
+        type,
+        message,
+        linkId: linkId || null,
+        actorId,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating notification:", error);
+  }
+}
