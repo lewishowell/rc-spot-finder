@@ -59,7 +59,7 @@ export default function AuthButton({ onOpenFriends, onOpenProfile, onOpenGarage,
 
   if (session?.user) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 relative z-50">
         <NotificationBell onClick={() => onOpenNotifications?.()} />
         <div className="relative" ref={dropdownRef}>
           <div className="relative">
