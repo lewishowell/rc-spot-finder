@@ -182,6 +182,7 @@ function getMarkerIcon(classification: Classification): L.DivIcon {
     hobby: "#f97316",
     airfield: "#8b5cf6",
     boat: "#06b6d4",
+    drone: "#ec4899",
   };
 
   const color = colors[classification];

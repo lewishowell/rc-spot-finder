@@ -280,6 +280,7 @@ export default function Home() {
     setShowForm(true);
     setSelectedLocation(null);
     setIsBottomSheetExpanded(true);
+    setIsSidebarOpen(true); // Open sidebar on desktop
   };
 
   const handleNewMarkerDrag = (lat: number, lng: number) => {
@@ -291,6 +292,7 @@ export default function Home() {
     setSelectedLocation(location);
     setShowForm(false);
     setNewMarkerPosition(null);
+    setIsSidebarOpen(true); // Open sidebar on desktop
     // Don't auto-expand bottom sheet on mobile - let user see the popup first
   };
 

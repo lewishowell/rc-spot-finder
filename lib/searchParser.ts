@@ -33,6 +33,13 @@ const CLASSIFICATION_KEYWORDS: Record<string, Classification> = {
   plane: "airfield",
   planes: "airfield",
   aircraft: "airfield",
+  drone: "drone",
+  drones: "drone",
+  uav: "drone",
+  fpv: "drone",
+  quad: "drone",
+  quadcopter: "drone",
+  multirotor: "drone",
 };
 
 const REGION_ALIASES: Record<string, string> = {
