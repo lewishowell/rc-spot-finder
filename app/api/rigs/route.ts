@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyFriends } from "@/lib/notifications";
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,8 +66,22 @@ export async function POST(request: NextRequest) {
       },
       include: {
         modifications: true,
+        user: {
+          select: { name: true, username: true },
+        },
       },
     });
+
+    // Notify friends (fire and forget)
+    const actorName = rig.user?.username
+      ? `@${rig.user.username}`
+      : rig.user?.name || "Someone";
+    notifyFriends(
+      session.user.id,
+      "friend_new_rig",
+      `${actorName} added a new rig: ${manufacturer} ${model}`,
+      rig.id
+    );
 
     return NextResponse.json(rig, { status: 201 });
   } catch (error) {

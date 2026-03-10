@@ -3,6 +3,7 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import FriendRequestBadge from "./FriendRequestBadge";
+import NotificationBell from "./NotificationBell";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -31,9 +32,10 @@ interface AuthButtonProps {
   onOpenFriends?: () => void;
   onOpenProfile?: () => void;
   onOpenGarage?: () => void;
+  onOpenNotifications?: () => void;
 }
 
-export default function AuthButton({ onOpenFriends, onOpenProfile, onOpenGarage }: AuthButtonProps = {}) {
+export default function AuthButton({ onOpenFriends, onOpenProfile, onOpenGarage, onOpenNotifications }: AuthButtonProps = {}) {
   const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,26 +59,28 @@ export default function AuthButton({ onOpenFriends, onOpenProfile, onOpenGarage 
 
   if (session?.user) {
     return (
-      <div className="relative" ref={dropdownRef}>
-        <div className="relative">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-md hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {session.user.image ? (
-              <img
-                src={session.user.image}
-                alt={session.user.name || "User"}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-medium">
-                {session.user.name?.charAt(0) || session.user.email?.charAt(0) || "U"}
-              </div>
-            )}
-          </button>
-          <FriendRequestBadge onClick={() => { setIsOpen(false); onOpenFriends?.(); }} />
-        </div>
+      <div className="flex items-center gap-2">
+        <NotificationBell onClick={() => onOpenNotifications?.()} />
+        <div className="relative" ref={dropdownRef}>
+          <div className="relative">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-md hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {session.user.image ? (
+                <img
+                  src={session.user.image}
+                  alt={session.user.name || "User"}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-medium">
+                  {session.user.name?.charAt(0) || session.user.email?.charAt(0) || "U"}
+                </div>
+              )}
+            </button>
+            <FriendRequestBadge onClick={() => { setIsOpen(false); onOpenFriends?.(); }} />
+          </div>
 
         {isOpen && (
           <div className="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
@@ -133,6 +137,7 @@ export default function AuthButton({ onOpenFriends, onOpenProfile, onOpenGarage 
             </div>
           </div>
         )}
+        </div>
       </div>
     );
   }

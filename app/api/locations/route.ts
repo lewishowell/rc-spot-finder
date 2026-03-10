@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getRegionFromCoordinates } from "@/lib/geocode";
+import { notifyFriends } from "@/lib/notifications";
 
 export async function GET(request: NextRequest) {
   try {
@@ -146,6 +147,17 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Notify friends (fire and forget)
+    const actorName = location.user?.username
+      ? `@${location.user.username}`
+      : location.user?.name || "Someone";
+    notifyFriends(
+      session.user.id,
+      "friend_new_spot",
+      `${actorName} added a new spot: ${name}`,
+      location.id
+    );
 
     return NextResponse.json({
       ...location,

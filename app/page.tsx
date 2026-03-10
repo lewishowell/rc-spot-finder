@@ -22,6 +22,7 @@ import RigDetail from "@/components/RigDetail";
 import RigForm from "@/components/RigForm";
 import ModForm from "@/components/ModForm";
 import UserProfilePanel from "@/components/UserProfilePanel";
+import NotificationPanel from "@/components/NotificationPanel";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -65,6 +66,7 @@ export default function Home() {
   const [showRigForm, setShowRigForm] = useState<string | null | false>(false); // false=closed, null=new, string=edit
   const [showModForm, setShowModForm] = useState<{ rigId: string; modId?: string } | null>(null);
   const [showUserProfile, setShowUserProfile] = useState<string | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Touch handling for bottom sheet swipe
   const touchStartY = useRef<number>(0);
@@ -588,6 +590,7 @@ export default function Home() {
                 onOpenFriends={() => setShowFriends(true)}
                 onOpenProfile={() => setShowProfileSettings(true)}
                 onOpenGarage={() => setShowGarage(true)}
+                onOpenNotifications={() => setShowNotifications(true)}
               />
             </div>
             <div className="flex-1">
@@ -631,6 +634,7 @@ export default function Home() {
                 onOpenFriends={() => setShowFriends(true)}
                 onOpenProfile={() => setShowProfileSettings(true)}
                 onOpenGarage={() => setShowGarage(true)}
+                onOpenNotifications={() => setShowNotifications(true)}
               />
         <div className="flex flex-col gap-2">
           <div className="w-96">
@@ -882,6 +886,35 @@ export default function Home() {
             <FriendsList
               onClose={() => setShowFriends(false)}
               onViewProfile={(userId) => { setShowFriends(false); setShowUserProfile(userId); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Notifications Panel */}
+      {showNotifications && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowNotifications(false)} />
+          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto">
+            <NotificationPanel
+              onClose={() => setShowNotifications(false)}
+              onViewSpot={(spotId) => {
+                setShowNotifications(false);
+                const spot = locations.find((l) => l.id === spotId);
+                if (spot) {
+                  setSelectedLocation(spot);
+                  setIsBottomSheetExpanded(true);
+                  setIsSidebarOpen(true);
+                }
+              }}
+              onViewRig={(rigId) => {
+                setShowNotifications(false);
+                setShowRigDetail(rigId);
+              }}
+              onViewProfile={(userId) => {
+                setShowNotifications(false);
+                setShowUserProfile(userId);
+              }}
             />
           </div>
         </div>
