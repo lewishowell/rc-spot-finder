@@ -26,6 +26,14 @@ export default function LocationMarker({ location, icon, onClick, onViewDetails,
     >
       <Popup>
         <div className="min-w-[200px]">
+          {location.imageUrl && (
+            <img
+              src={location.imageUrl}
+              alt={location.name}
+              className="w-full h-24 object-cover rounded-md mb-2"
+              loading="lazy"
+            />
+          )}
           <h3 className="font-bold text-lg mb-1">{location.name}</h3>
           <div className="flex flex-wrap items-center gap-1 mb-2">
             {matchedClassifications.map((c) => (

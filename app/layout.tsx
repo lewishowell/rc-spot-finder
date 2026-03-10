@@ -24,6 +24,14 @@ export default function RootLayout({
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin=""
         />
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/react-leaflet-cluster@2.1.0/lib/assets/MarkerCluster.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/react-leaflet-cluster@2.1.0/lib/assets/MarkerCluster.Default.css"
+        />
       </head>
       <body className="antialiased touch-manipulation">
         <Providers>{children}</Providers>

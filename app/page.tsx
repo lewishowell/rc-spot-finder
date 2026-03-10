@@ -11,6 +11,10 @@ import LocationForm from "@/components/LocationForm";
 import LocationCard from "@/components/LocationCard";
 import SearchBox from "@/components/SearchBox";
 import AuthButton from "@/components/AuthButton";
+import WelcomeOverlay from "@/components/WelcomeOverlay";
+import FeaturedSpots from "@/components/FeaturedSpots";
+import StatsBanner from "@/components/StatsBanner";
+import SpotOfTheDay from "@/components/SpotOfTheDay";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -44,6 +48,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchTerms, setSearchTerms] = useState<string[]>([]);
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [showGeolocationPrompt, setShowGeolocationPrompt] = useState(false);
 
   // Touch handling for bottom sheet swipe
   const touchStartY = useRef<number>(0);
@@ -247,6 +253,76 @@ export default function Home() {
       .map((loc) => ({ id: loc.id, name: loc.name }));
   }, [locations]);
 
+  // Computed values for landing page components
+  const totalRegions = useMemo(() => {
+    const regions = new Set(locations.map((loc) => loc.region).filter(Boolean));
+    return regions.size;
+  }, [locations]);
+
+  const newestSpotName = useMemo(() => {
+    if (locations.length === 0) return null;
+    const sorted = [...locations].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    return sorted[0]?.name ?? null;
+  }, [locations]);
+
+  const spotOfTheDay = useMemo(() => {
+    if (locations.length === 0) return null;
+    // Deterministic "random" based on date
+    const today = new Date().toISOString().slice(0, 10);
+    let hash = 0;
+    for (let i = 0; i < today.length; i++) {
+      hash = ((hash << 5) - hash) + today.charCodeAt(i);
+      hash |= 0;
+    }
+    const index = Math.abs(hash) % locations.length;
+    return locations[index];
+  }, [locations]);
+
+  // Show geolocation prompt after welcome overlay is dismissed (for first-time visitors)
+  useEffect(() => {
+    if (!showWelcome && !defaultRegion && !session?.user && "geolocation" in navigator) {
+      const prompted = localStorage.getItem("geoPrompted");
+      if (!prompted) {
+        setShowGeolocationPrompt(true);
+      }
+    }
+  }, [showWelcome, defaultRegion, session?.user]);
+
+  const handleGeolocation = useCallback(() => {
+    localStorage.setItem("geoPrompted", "true");
+    setShowGeolocationPrompt(false);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setSearchLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+      },
+      () => {
+        // User denied or error - just dismiss
+      }
+    );
+  }, []);
+
+  const handleDismissGeolocation = useCallback(() => {
+    localStorage.setItem("geoPrompted", "true");
+    setShowGeolocationPrompt(false);
+  }, []);
+
+  const handleWelcomeDismiss = useCallback(() => {
+    setShowWelcome(false);
+  }, []);
+
+  const handleWelcomeRegionSelect = useCallback((region: string) => {
+    setShowWelcome(false);
+    setFilters((prev) => ({ ...prev, region }));
+  }, []);
+
+  const handleFeaturedSpotClick = useCallback((spot: Spot) => {
+    setSelectedLocation(spot);
+    setIsBottomSheetExpanded(true);
+    setIsSidebarOpen(true);
+  }, []);
+
   const handleVoteChange = useCallback((locationId: string, upvotes: number, downvotes: number, userVote: number | null) => {
     setLocations((prev) =>
       prev.map((loc) =>
@@ -417,6 +493,46 @@ export default function Home() {
 
   return (
     <div className="h-full w-full flex flex-col md:flex-row overflow-hidden">
+      {/* Welcome Overlay - first visit only */}
+      {showWelcome && (
+        <WelcomeOverlay
+          onDismiss={handleWelcomeDismiss}
+          onRegionSelect={handleWelcomeRegionSelect}
+        />
+      )}
+
+      {/* Geolocation prompt */}
+      {showGeolocationPrompt && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[1500] bg-white rounded-xl shadow-2xl border border-gray-200 p-4 max-w-sm mx-4 animate-bounce-in">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-gray-900 text-sm">Explore spots near you?</p>
+              <p className="text-xs text-gray-500 mt-0.5">We&apos;ll zoom to your area to show nearby RC spots.</p>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={handleGeolocation}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Sure!
+                </button>
+                <button
+                  onClick={handleDismissGeolocation}
+                  className="px-3 py-1.5 text-gray-500 text-xs font-medium hover:text-gray-700 transition-colors"
+                >
+                  No thanks
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Map Container */}
       <div className="flex-1 relative">
         <Map
@@ -481,16 +597,30 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Desktop search box and auth - separate from mobile */}
+      {/* Desktop search box, auth, and stats - separate from mobile */}
       <div className="hidden md:flex absolute top-4 left-4 gap-3 items-start z-[1000]">
         <AuthButton />
-        <div className="w-96">
-          <SearchBox
-            onSearch={handleSearch}
-            placeholder="Try: 'bash spots in California' or 'top voted tracks'"
-          />
+        <div className="flex flex-col gap-2">
+          <div className="w-96">
+            <SearchBox
+              onSearch={handleSearch}
+              placeholder="Try: 'bash spots in California' or 'top voted tracks'"
+            />
+          </div>
+          {!isLoading && locations.length > 0 && (
+            <StatsBanner
+              totalSpots={locations.length}
+              totalRegions={totalRegions}
+              newestSpotName={newestSpotName}
+            />
+          )}
         </div>
       </div>
+
+      {/* Spot of the Day - desktop only */}
+      {!showForm && !selectedLocation && spotOfTheDay && (
+        <SpotOfTheDay spot={spotOfTheDay} onSpotClick={handleFeaturedSpotClick} />
+      )}
 
       {/* Desktop Sidebar */}
       <div
@@ -573,6 +703,13 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* Mobile Featured Spots - shown when not expanded and not viewing a spot */}
+      {!isBottomSheetExpanded && !selectedLocation && !showForm && locations.length > 0 && (
+        <div className="md:hidden fixed bottom-16 left-0 right-0 z-[1001]" style={{ transform: "translateZ(0)" }}>
+          <FeaturedSpots spots={locations} onSpotClick={handleFeaturedSpotClick} />
+        </div>
+      )}
 
       {/* Mobile Bottom Sheet */}
       <div

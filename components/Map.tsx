@@ -2,9 +2,42 @@
 
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import { Location, Classification, REGION_COORDINATES } from "@/lib/types";
 import LocationMarker from "./LocationMarker";
+
+// Heatmap layer component using leaflet.heat
+function HeatmapLayer({ locations }: { locations: Location[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (locations.length === 0) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const heat = require("leaflet.heat");
+    void heat; // ensure import side-effect
+
+    const points: [number, number, number][] = locations.map((loc) => {
+      const score = Math.max(loc.upvotes - loc.downvotes, 0);
+      return [loc.latitude, loc.longitude, Math.min(score + 1, 10) / 10];
+    });
+
+    const heatLayer = (L as unknown as { heatLayer: (points: [number, number, number][], opts: Record<string, unknown>) => L.Layer }).heatLayer(points, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 12,
+      gradient: { 0.2: "#3b82f6", 0.5: "#22c55e", 0.8: "#f97316", 1.0: "#ef4444" },
+    });
+
+    heatLayer.addTo(map);
+    return () => {
+      map.removeLayer(heatLayer);
+    };
+  }, [locations, map]);
+
+  return null;
+}
 
 interface MapProps {
   locations: Location[];
@@ -18,6 +51,7 @@ interface MapProps {
   selectedRegion?: string;
   editingLocationId?: string;
   searchLocation?: { lat: number; lng: number } | null;
+  showHeatmap?: boolean;
 }
 
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
@@ -283,8 +317,11 @@ function MapContent({
   selectedRegion,
   editingLocationId,
   searchLocation,
+  showHeatmap,
   mapType,
 }: MapProps & { mapType: MapType }) {
+  const visibleLocations = locations.filter((location) => location.id !== editingLocationId);
+
   return (
     <>
       {mapType === "map" ? (
@@ -319,18 +356,25 @@ function MapContent({
       <FlyToRegion region={selectedRegion} />
       <FlyToSearchLocation location={searchLocation} />
       <MapResizer />
-      {locations
-        .filter((location) => location.id !== editingLocationId)
-        .map((location) => (
-        <LocationMarker
-          key={location.id}
-          location={location}
-          icon={getMarkerIcon(location.classifications as Classification[])}
-          onClick={() => onMarkerClick(location)}
-          onViewDetails={() => onViewDetails(location)}
-          isSelected={selectedLocation?.id === location.id}
-        />
-      ))}
+      {showHeatmap && <HeatmapLayer locations={visibleLocations} />}
+      <MarkerClusterGroup
+        chunkedLoading
+        maxClusterRadius={50}
+        spiderfyOnMaxZoom
+        showCoverageOnHover={false}
+        zoomToBoundsOnClick
+      >
+        {visibleLocations.map((location) => (
+          <LocationMarker
+            key={location.id}
+            location={location}
+            icon={getMarkerIcon(location.classifications as Classification[])}
+            onClick={() => onMarkerClick(location)}
+            onViewDetails={() => onViewDetails(location)}
+            isSelected={selectedLocation?.id === location.id}
+          />
+        ))}
+      </MarkerClusterGroup>
       {newMarkerPosition && (
         <DraggableNewMarker
           position={newMarkerPosition}
@@ -344,6 +388,7 @@ function MapContent({
 export default function Map(props: MapProps) {
   const [isClient, setIsClient] = useState(false);
   const [mapType, setMapType] = useState<MapType>("map");
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -351,6 +396,10 @@ export default function Map(props: MapProps) {
 
   const handleMapTypeToggle = useCallback(() => {
     setMapType((prev) => (prev === "map" ? "satellite" : "map"));
+  }, []);
+
+  const handleHeatmapToggle = useCallback(() => {
+    setShowHeatmap((prev) => !prev);
   }, []);
 
   if (!isClient) {
@@ -372,11 +421,11 @@ export default function Map(props: MapProps) {
         className="w-full h-full"
         zoomControl={false}
       >
-        <MapContent {...props} mapType={mapType} />
+        <MapContent {...props} showHeatmap={showHeatmap} mapType={mapType} />
       </MapContainer>
 
-      {/* Map/Satellite Toggle - positioned above bottom sheet on mobile */}
-      <div className="absolute bottom-20 md:bottom-6 left-4 z-[1000]">
+      {/* Map controls - positioned above bottom sheet on mobile */}
+      <div className="absolute bottom-20 md:bottom-6 left-4 z-[1000] flex gap-2">
         <button
           onClick={handleMapTypeToggle}
           className="bg-white px-3 py-2 md:px-4 md:py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center gap-2 rounded-lg shadow-lg border border-gray-300"
@@ -397,6 +446,21 @@ export default function Map(props: MapProps) {
               Map
             </>
           )}
+        </button>
+        <button
+          onClick={handleHeatmapToggle}
+          className={`px-3 py-2 md:px-4 md:py-2.5 text-sm font-medium flex items-center gap-2 rounded-lg shadow-lg border transition-colors ${
+            showHeatmap
+              ? "bg-orange-500 text-white border-orange-500"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+          }`}
+          title={showHeatmap ? "Hide heatmap" : "Show heatmap"}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+          </svg>
+          <span className="hidden md:inline">Heat</span>
         </button>
       </div>
     </div>
