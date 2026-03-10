@@ -15,6 +15,13 @@ import WelcomeOverlay from "@/components/WelcomeOverlay";
 import FeaturedSpots from "@/components/FeaturedSpots";
 import StatsBanner from "@/components/StatsBanner";
 import FeatureRequestModal from "@/components/FeatureRequestModal";
+import FriendsList from "@/components/FriendsList";
+import ProfileSettings from "@/components/ProfileSettings";
+import RigGarage from "@/components/RigGarage";
+import RigDetail from "@/components/RigDetail";
+import RigForm from "@/components/RigForm";
+import ModForm from "@/components/ModForm";
+import UserProfilePanel from "@/components/UserProfilePanel";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -51,6 +58,13 @@ export default function Home() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [showGeolocationPrompt, setShowGeolocationPrompt] = useState(false);
   const [showFeatureRequest, setShowFeatureRequest] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
+  const [showGarage, setShowGarage] = useState(false);
+  const [showRigDetail, setShowRigDetail] = useState<string | null>(null);
+  const [showRigForm, setShowRigForm] = useState<string | null | false>(false); // false=closed, null=new, string=edit
+  const [showModForm, setShowModForm] = useState<{ rigId: string; modId?: string } | null>(null);
+  const [showUserProfile, setShowUserProfile] = useState<string | null>(null);
 
   // Touch handling for bottom sheet swipe
   const touchStartY = useRef<number>(0);
@@ -570,7 +584,11 @@ export default function Home() {
         >
           <div className="flex gap-2 items-start">
             <div className="flex-shrink-0">
-              <AuthButton />
+              <AuthButton
+                onOpenFriends={() => setShowFriends(true)}
+                onOpenProfile={() => setShowProfileSettings(true)}
+                onOpenGarage={() => setShowGarage(true)}
+              />
             </div>
             <div className="flex-1">
               <SearchBox
@@ -609,7 +627,11 @@ export default function Home() {
 
       {/* Desktop search box, auth, and stats - separate from mobile */}
       <div className="hidden md:flex absolute top-4 left-4 gap-3 items-start z-[1000]">
-        <AuthButton />
+        <AuthButton
+                onOpenFriends={() => setShowFriends(true)}
+                onOpenProfile={() => setShowProfileSettings(true)}
+                onOpenGarage={() => setShowGarage(true)}
+              />
         <div className="flex flex-col gap-2">
           <div className="w-96">
             <SearchBox
@@ -844,6 +866,105 @@ export default function Home() {
       {/* Feature Request Modal */}
       {showFeatureRequest && (
         <FeatureRequestModal onClose={() => setShowFeatureRequest(false)} />
+      )}
+
+      {/* Friends Panel */}
+      {showFriends && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowFriends(false)} />
+          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-hidden">
+            <FriendsList
+              onClose={() => setShowFriends(false)}
+              onViewProfile={(userId) => { setShowFriends(false); setShowUserProfile(userId); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Profile Settings Modal */}
+      {showProfileSettings && (
+        <ProfileSettings onClose={() => setShowProfileSettings(false)} />
+      )}
+
+      {/* User Profile Panel */}
+      {showUserProfile && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserProfile(null)} />
+          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto">
+            <UserProfilePanel
+              userId={showUserProfile}
+              onClose={() => setShowUserProfile(null)}
+              onViewRig={(rigId) => { setShowUserProfile(null); setShowRigDetail(rigId); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Garage Panel */}
+      {showGarage && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowGarage(false)} />
+          <div className="relative z-10 w-full max-w-lg mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">My Garage</h2>
+              <button onClick={() => setShowGarage(false)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <RigGarage
+              isOwner
+              onRigClick={(rigId) => { setShowGarage(false); setShowRigDetail(rigId); }}
+              onAddRig={() => { setShowGarage(false); setShowRigForm(null); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Rig Detail */}
+      {showRigDetail && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowRigDetail(null)} />
+          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto">
+            <RigDetail
+              rigId={showRigDetail}
+              onClose={() => setShowRigDetail(null)}
+              onEdit={() => { setShowRigForm(showRigDetail); setShowRigDetail(null); }}
+              onAddMod={() => { setShowModForm({ rigId: showRigDetail }); }}
+              onEditMod={(modId) => { setShowModForm({ rigId: showRigDetail, modId }); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Rig Form (add/edit) */}
+      {showRigForm !== false && (
+        <div className="fixed inset-0 z-[2100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowRigForm(false)} />
+          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto p-6">
+            <RigForm
+              rigId={showRigForm || undefined}
+              onClose={() => setShowRigForm(false)}
+              onSaved={() => { setShowRigForm(false); setShowGarage(true); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Mod Form (add/edit) */}
+      {showModForm && (
+        <div className="fixed inset-0 z-[2200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowModForm(null)} />
+          <div className="relative z-10 w-full max-w-sm mx-4 bg-white rounded-xl shadow-2xl overflow-y-auto p-6">
+            <ModForm
+              rigId={showModForm.rigId}
+              modId={showModForm.modId}
+              onClose={() => setShowModForm(null)}
+              onSaved={() => { setShowModForm(null); }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

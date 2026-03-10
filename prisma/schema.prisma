@@ -9,19 +9,25 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  defaultRegion String?   // User's preferred default map region
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  name              String?
+  email             String?   @unique
+  emailVerified     DateTime?
+  image             String?
+  defaultRegion     String?   // User's preferred default map region
+  username          String?   @unique
+  bio               String?
+  profileVisibility String    @default("public") // "public" | "friends" | "private"
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  locations     Location[]
-  votes         Vote[]
+  accounts               Account[]
+  sessions               Session[]
+  locations              Location[]
+  votes                  Vote[]
+  rigs                   Rig[]
+  sentFriendRequests     Friendship[] @relation("SentFriendRequests")
+  receivedFriendRequests Friendship[] @relation("ReceivedFriendRequests")
 }
 
 model Account {
@@ -98,4 +104,52 @@ model Vote {
 
   @@unique([userId, locationId])  // One vote per user per location
   @@index([locationId])
+}
+
+model Friendship {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     String   @default("pending") // "pending" | "accepted" | "rejected"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender   User @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId, status])
+  @@index([senderId, status])
+}
+
+model Rig {
+  id           String   @id @default(cuid())
+  userId       String
+  manufacturer String
+  model        String
+  nickname     String?
+  imageUrl     String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  modifications Modification[]
+
+  @@index([userId])
+}
+
+model Modification {
+  id        String   @id @default(cuid())
+  rigId     String
+  category  String   // "Motor", "ESC", "Battery", "Servo", "Chassis", "Suspension", "Tires", "Body", "Drivetrain", "Electronics", "Other"
+  brand     String
+  name      String
+  notes     String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  rig Rig @relation(fields: [rigId], references: [id], onDelete: Cascade)
+
+  @@index([rigId])
 }
