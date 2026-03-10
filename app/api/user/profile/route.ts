@@ -18,6 +18,7 @@ export async function GET() {
       select: {
         username: true,
         bio: true,
+        instagram: true,
         profileVisibility: true,
         name: true,
         image: true,
@@ -53,7 +54,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { username, bio, profileVisibility } = body;
+    const { username, bio, instagram, profileVisibility } = body;
 
     // Build update data only with provided fields
     const data: Record<string, unknown> = {};
@@ -91,6 +92,18 @@ export async function PUT(request: NextRequest) {
       data.bio = bio || null;
     }
 
+    if (instagram !== undefined) {
+      // Strip @ prefix and whitespace, store just the handle
+      const handle = instagram ? instagram.trim().replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/$/, "") : null;
+      if (handle && !/^[a-zA-Z0-9._]{1,30}$/.test(handle)) {
+        return NextResponse.json(
+          { error: "Invalid Instagram username" },
+          { status: 400 }
+        );
+      }
+      data.instagram = handle || null;
+    }
+
     if (profileVisibility !== undefined) {
       const validVisibilities = ["public", "friends", "private"];
       if (!validVisibilities.includes(profileVisibility)) {
@@ -115,6 +128,7 @@ export async function PUT(request: NextRequest) {
       select: {
         username: true,
         bio: true,
+        instagram: true,
         profileVisibility: true,
         name: true,
         image: true,

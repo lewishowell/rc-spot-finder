@@ -9,6 +9,7 @@ interface ProfileSettingsProps {
 export default function ProfileSettings({ onClose }: ProfileSettingsProps) {
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
+  const [instagram, setInstagram] = useState("");
   const [visibility, setVisibility] = useState("public");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,7 +27,8 @@ export default function ProfileSettings({ onClose }: ProfileSettingsProps) {
           const data = await res.json();
           setUsername(data.username || "");
           setBio(data.bio || "");
-          setVisibility(data.visibility || "public");
+          setInstagram(data.instagram || "");
+          setVisibility(data.profileVisibility || "public");
         } else {
           setError("Failed to load profile");
         }
@@ -72,7 +74,7 @@ export default function ProfileSettings({ onClose }: ProfileSettingsProps) {
       const res = await fetch("/api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, bio, profileVisibility: visibility }),
+        body: JSON.stringify({ username, bio, instagram, profileVisibility: visibility }),
       });
 
       if (res.ok) {
@@ -180,6 +182,25 @@ export default function ProfileSettings({ onClose }: ProfileSettingsProps) {
                   className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black opacity-100 resize-none"
                   placeholder="Tell others about yourself..."
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-black mb-1">
+                  Instagram
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">@</span>
+                  <input
+                    type="text"
+                    value={instagram}
+                    onChange={(e) => setInstagram(e.target.value.replace(/^@/, ""))}
+                    className="w-full pl-7 pr-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black opacity-100"
+                    placeholder="your_instagram"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  Your Instagram handle (optional)
+                </p>
               </div>
 
               <div>

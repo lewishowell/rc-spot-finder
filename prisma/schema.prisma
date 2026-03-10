@@ -17,6 +17,7 @@ model User {
   defaultRegion     String?   // User's preferred default map region
   username          String?   @unique
   bio               String?
+  instagram         String?
   profileVisibility String    @default("public") // "public" | "friends" | "private"
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt

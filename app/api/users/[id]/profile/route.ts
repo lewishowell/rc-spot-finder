@@ -17,6 +17,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         image: true,
         username: true,
         bio: true,
+        instagram: true,
         profileVisibility: true,
         createdAt: true,
         _count: {
@@ -83,6 +84,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       image: user.image,
       username: user.username,
       bio: user.bio,
+      instagram: user.instagram,
       createdAt: user.createdAt,
       spotCount: user._count.locations,
       friendStatus,
