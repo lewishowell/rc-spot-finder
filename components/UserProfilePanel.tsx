@@ -244,7 +244,7 @@ export default function UserProfilePanel({ userId, onClose, onViewRig }: UserPro
 
         {profile?.instagram && (
           <a
-            href={`https://instagram.com/${profile.instagram}`}
+            href={`https://www.instagram.com/${profile.instagram}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 mt-2 text-sm text-pink-600 hover:text-pink-700 transition-colors"
