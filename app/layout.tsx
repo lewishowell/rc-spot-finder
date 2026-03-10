@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Providers from "@/components/Providers";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased touch-manipulation">
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
