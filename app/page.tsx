@@ -63,6 +63,7 @@ export default function Home() {
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showGarage, setShowGarage] = useState(false);
   const [showRigDetail, setShowRigDetail] = useState<string | null>(null);
+  const [rigDetailBackTo, setRigDetailBackTo] = useState<{ type: "profile"; userId: string } | { type: "garage" } | null>(null);
   const [showRigForm, setShowRigForm] = useState<string | null | false>(false); // false=closed, null=new, string=edit
   const [showModForm, setShowModForm] = useState<{ rigId: string; modId?: string } | null>(null);
   const [showUserProfile, setShowUserProfile] = useState<string | null>(null);
@@ -909,6 +910,7 @@ export default function Home() {
               }}
               onViewRig={(rigId) => {
                 setShowNotifications(false);
+                setRigDetailBackTo(null);
                 setShowRigDetail(rigId);
               }}
               onViewProfile={(userId) => {
@@ -933,7 +935,7 @@ export default function Home() {
             <UserProfilePanel
               userId={showUserProfile}
               onClose={() => setShowUserProfile(null)}
-              onViewRig={(rigId) => { setShowUserProfile(null); setShowRigDetail(rigId); }}
+              onViewRig={(rigId) => { setRigDetailBackTo({ type: "profile", userId: showUserProfile }); setShowUserProfile(null); setShowRigDetail(rigId); }}
             />
           </div>
         </div>
@@ -954,7 +956,7 @@ export default function Home() {
             </div>
             <RigGarage
               isOwner
-              onRigClick={(rigId) => { setShowGarage(false); setShowRigDetail(rigId); }}
+              onRigClick={(rigId) => { setRigDetailBackTo({ type: "garage" }); setShowGarage(false); setShowRigDetail(rigId); }}
               onAddRig={() => { setShowGarage(false); setShowRigForm(null); }}
             />
           </div>
@@ -968,7 +970,16 @@ export default function Home() {
           <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto p-6">
             <RigDetail
               rigId={showRigDetail}
-              onClose={() => setShowRigDetail(null)}
+              onClose={() => {
+                const backTo = rigDetailBackTo;
+                setShowRigDetail(null);
+                setRigDetailBackTo(null);
+                if (backTo?.type === "profile") {
+                  setShowUserProfile(backTo.userId);
+                } else if (backTo?.type === "garage") {
+                  setShowGarage(true);
+                }
+              }}
               onEdit={() => { setShowRigForm(showRigDetail); setShowRigDetail(null); }}
               onAddMod={() => { setShowModForm({ rigId: showRigDetail }); }}
               onEditMod={(modId) => { setShowModForm({ rigId: showRigDetail, modId }); }}
