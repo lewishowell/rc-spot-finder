@@ -56,7 +56,7 @@ export default function FeatureRequestModal({ onClose }: FeatureRequestModalProp
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-1">Thanks for your feedback!</h3>
-              <p className="text-sm text-gray-500">Your feature request has been submitted.</p>
+              <p className="text-sm text-gray-500">Your feedback has been submitted.</p>
               <button
                 onClick={onClose}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
@@ -66,9 +66,9 @@ export default function FeatureRequestModal({ onClose }: FeatureRequestModalProp
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Request a Feature</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Feedback & Bug Reports</h3>
               <p className="text-sm text-gray-500 mb-4">
-                Have an idea to improve RC Spot Finder? Let us know!
+                Have an idea to improve RC Spot Finder? Found a bug? Let us know!
               </p>
 
               {error && (
@@ -86,7 +86,7 @@ export default function FeatureRequestModal({ onClose }: FeatureRequestModalProp
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="e.g. Add event calendar for race days"
+                  placeholder="e.g. Add event calendar for race days, or: Map not loading on Safari"
                 />
               </div>
 
@@ -99,7 +99,7 @@ export default function FeatureRequestModal({ onClose }: FeatureRequestModalProp
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
                   className="w-full px-3 py-2 bg-white border-2 border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black resize-none"
-                  placeholder="Describe the feature you'd like to see..."
+                  placeholder="Describe the feature or bug in detail..."
                 />
               </div>
 
@@ -109,7 +109,7 @@ export default function FeatureRequestModal({ onClose }: FeatureRequestModalProp
                   disabled={isSubmitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  {isSubmitting ? "Submitting..." : "Submit Request"}
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
                 <button
                   type="button"
