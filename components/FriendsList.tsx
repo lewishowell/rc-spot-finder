@@ -41,7 +41,9 @@ export default function FriendsList({ onClose, onViewProfile }: FriendsListProps
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(true);
+  const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
+  const [loadingSent, setLoadingSent] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -79,7 +81,7 @@ export default function FriendsList({ onClose, onViewProfile }: FriendsListProps
     }
   }, []);
 
-  // Fetch pending requests
+  // Fetch pending requests (received)
   const fetchRequests = useCallback(async () => {
     setLoadingRequests(true);
     try {
@@ -95,10 +97,27 @@ export default function FriendsList({ onClose, onViewProfile }: FriendsListProps
     }
   }, []);
 
+  // Fetch sent requests
+  const fetchSentRequests = useCallback(async () => {
+    setLoadingSent(true);
+    try {
+      const res = await fetch("/api/friends?status=pending&direction=sent");
+      if (res.ok) {
+        const data = await res.json();
+        setSentRequests(data);
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setLoadingSent(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchFriends();
     fetchRequests();
-  }, [fetchFriends, fetchRequests]);
+    fetchSentRequests();
+  }, [fetchFriends, fetchRequests, fetchSentRequests]);
 
   // Debounced search
   useEffect(() => {
@@ -143,8 +162,9 @@ export default function FriendsList({ onClose, onViewProfile }: FriendsListProps
         body: JSON.stringify({ receiverId: userId }),
       });
       if (res.ok) {
-        // Remove from search results to indicate success
+        // Remove from search results and refresh sent requests
         setSearchResults((prev) => prev.filter((r) => r.id !== userId));
+        fetchSentRequests();
       } else {
         const data = await res.json();
         setError(data.error || "Failed to send request");
@@ -290,9 +310,9 @@ export default function FriendsList({ onClose, onViewProfile }: FriendsListProps
           }`}
         >
           Requests
-          {requests.length > 0 && (
+          {(requests.length + sentRequests.length) > 0 && (
             <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
-              {requests.length}
+              {requests.length + sentRequests.length}
             </span>
           )}
         </button>
@@ -347,44 +367,77 @@ export default function FriendsList({ onClose, onViewProfile }: FriendsListProps
 
         {activeTab === "requests" && (
           <div className="p-2">
+            {/* Received requests */}
             {loadingRequests ? (
               <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
-            ) : requests.length === 0 ? (
+            ) : requests.length > 0 ? (
+              <>
+                <p className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">Received</p>
+                <div className="space-y-1">
+                  {requests.map((request) => (
+                    <div
+                      key={request.friendshipId}
+                      className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      {renderAvatar(request.user.image || undefined, request.user.name || undefined)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{request.user.name}</p>
+                        {request.user.username && (
+                          <p className="text-xs text-gray-500 truncate">@{request.user.username}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleAcceptRequest(request.friendshipId)}
+                          disabled={acceptingRequest === request.friendshipId}
+                          className="px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        >
+                          {acceptingRequest === request.friendshipId ? "..." : "Accept"}
+                        </button>
+                        <button
+                          onClick={() => handleDeclineRequest(request.friendshipId)}
+                          disabled={decliningRequest === request.friendshipId}
+                          className="px-2 py-1 border border-red-300 text-red-600 text-xs rounded-md hover:bg-red-50 transition-colors disabled:opacity-50"
+                        >
+                          {decliningRequest === request.friendshipId ? "..." : "Decline"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
+
+            {/* Sent requests */}
+            {loadingSent ? null : sentRequests.length > 0 ? (
+              <>
+                <p className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wide mt-2">Sent</p>
+                <div className="space-y-1">
+                  {sentRequests.map((request) => (
+                    <div
+                      key={request.friendshipId}
+                      className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      {renderAvatar(request.user.image || undefined, request.user.name || undefined)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{request.user.name}</p>
+                        {request.user.username && (
+                          <p className="text-xs text-gray-500 truncate">@{request.user.username}</p>
+                        )}
+                      </div>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs font-medium rounded-md">
+                        Pending
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
+
+            {/* Empty state */}
+            {!loadingRequests && !loadingSent && requests.length === 0 && sentRequests.length === 0 && (
               <div className="p-4 text-center text-gray-400 text-sm">
                 No pending friend requests.
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {requests.map((request) => (
-                  <div
-                    key={request.friendshipId}
-                    className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 transition-colors"
-                  >
-                    {renderAvatar(request.user.image || undefined, request.user.name || undefined)}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{request.user.name}</p>
-                      {request.user.username && (
-                        <p className="text-xs text-gray-500 truncate">@{request.user.username}</p>
-                      )}
-                    </div>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleAcceptRequest(request.friendshipId)}
-                        disabled={acceptingRequest === request.friendshipId}
-                        className="px-2 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-                      >
-                        {acceptingRequest === request.friendshipId ? "..." : "Accept"}
-                      </button>
-                      <button
-                        onClick={() => handleDeclineRequest(request.friendshipId)}
-                        disabled={decliningRequest === request.friendshipId}
-                        className="px-2 py-1 border border-red-300 text-red-600 text-xs rounded-md hover:bg-red-50 transition-colors disabled:opacity-50"
-                      >
-                        {decliningRequest === request.friendshipId ? "..." : "Decline"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
               </div>
             )}
           </div>
