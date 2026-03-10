@@ -14,7 +14,6 @@ import AuthButton from "@/components/AuthButton";
 import WelcomeOverlay from "@/components/WelcomeOverlay";
 import FeaturedSpots from "@/components/FeaturedSpots";
 import StatsBanner from "@/components/StatsBanner";
-import SpotOfTheDay from "@/components/SpotOfTheDay";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -267,17 +266,12 @@ export default function Home() {
     return sorted[0]?.name ?? null;
   }, [locations]);
 
-  const spotOfTheDay = useMemo(() => {
+  const newestSpot = useMemo(() => {
     if (locations.length === 0) return null;
-    // Deterministic "random" based on date
-    const today = new Date().toISOString().slice(0, 10);
-    let hash = 0;
-    for (let i = 0; i < today.length; i++) {
-      hash = ((hash << 5) - hash) + today.charCodeAt(i);
-      hash |= 0;
-    }
-    const index = Math.abs(hash) % locations.length;
-    return locations[index];
+    const sorted = [...locations].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    return sorted[0];
   }, [locations]);
 
   // Show geolocation prompt after welcome overlay is dismissed (for first-time visitors)
@@ -617,9 +611,20 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Spot of the Day - desktop only */}
-      {!showForm && !selectedLocation && spotOfTheDay && (
-        <SpotOfTheDay spot={spotOfTheDay} onSpotClick={handleFeaturedSpotClick} />
+      {/* Newest Spot - desktop only */}
+      {!showForm && !selectedLocation && newestSpot && (
+        <div className="hidden md:block fixed bottom-16 left-4 z-[999] w-80">
+          <div className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 bg-white/80 backdrop-blur-sm rounded-t-lg px-3 py-1.5">
+            Newest Spot
+          </div>
+          <LocationCard
+            location={newestSpot}
+            onClick={() => handleFeaturedSpotClick(newestSpot)}
+            onVoteChange={handleVoteChange}
+            onHobbyShopClick={handleHobbyShopClick}
+            isSelected={false}
+          />
+        </div>
       )}
 
       {/* Desktop Sidebar */}
