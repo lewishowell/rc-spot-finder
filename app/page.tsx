@@ -14,6 +14,7 @@ import AuthButton from "@/components/AuthButton";
 import WelcomeOverlay from "@/components/WelcomeOverlay";
 import FeaturedSpots from "@/components/FeaturedSpots";
 import StatsBanner from "@/components/StatsBanner";
+import FeatureRequestModal from "@/components/FeatureRequestModal";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -49,6 +50,7 @@ export default function Home() {
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
   const [showGeolocationPrompt, setShowGeolocationPrompt] = useState(false);
+  const [showFeatureRequest, setShowFeatureRequest] = useState(false);
 
   // Touch handling for bottom sheet swipe
   const touchStartY = useRef<number>(0);
@@ -579,6 +581,20 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Feature request button (mobile, logged in only) */}
+        {session && (
+          <button
+            onClick={() => setShowFeatureRequest(true)}
+            className="absolute right-4 w-10 h-10 bg-white text-gray-600 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors pointer-events-auto border border-gray-200"
+            style={{ bottom: "calc(10rem + env(safe-area-inset-bottom, 0px))" }}
+            title="Request a feature"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </button>
+        )}
+
         {/* Add button */}
         <button
           onClick={handleAddNew}
@@ -636,12 +652,25 @@ export default function Home() {
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-bold text-gray-900">RC Spot Finder</h1>
-            <button
-              onClick={handleAddNew}
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Add Spot
-            </button>
+            <div className="flex items-center gap-2">
+              {session && (
+                <button
+                  onClick={() => setShowFeatureRequest(true)}
+                  className="px-3 py-2 text-gray-500 hover:text-gray-700 text-sm transition-colors"
+                  title="Request a feature"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </button>
+              )}
+              <button
+                onClick={handleAddNew}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Add Spot
+              </button>
+            </div>
           </div>
           <FilterPanel
             filters={filters}
@@ -803,6 +832,11 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Feature Request Modal */}
+      {showFeatureRequest && (
+        <FeatureRequestModal onClose={() => setShowFeatureRequest(false)} />
+      )}
     </div>
   );
 }
