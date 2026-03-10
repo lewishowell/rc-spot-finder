@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { Location, CLASSIFICATIONS } from "@/lib/types";
@@ -15,9 +16,18 @@ interface LocationMarkerProps {
 export default function LocationMarker({ location, icon, onClick, onViewDetails, isSelected }: LocationMarkerProps) {
   const matchedClassifications = CLASSIFICATIONS.filter((c) => location.classifications.includes(c.value));
   const score = location.upvotes - location.downvotes;
+  const markerRef = useRef<L.Marker>(null);
+
+  // Close popup when deselected
+  useEffect(() => {
+    if (!isSelected && markerRef.current) {
+      markerRef.current.closePopup();
+    }
+  }, [isSelected]);
 
   return (
     <Marker
+      ref={markerRef}
       position={[location.latitude, location.longitude]}
       icon={icon}
       eventHandlers={{
