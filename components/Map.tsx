@@ -174,22 +174,40 @@ function MapResizer() {
   return null;
 }
 
-function getMarkerIcon(classification: Classification): L.DivIcon {
-  const colors: Record<Classification, string> = {
-    bash: "#ef4444",
-    race: "#3b82f6",
-    crawl: "#22c55e",
-    hobby: "#f97316",
-    airfield: "#8b5cf6",
-    boat: "#06b6d4",
-    drone: "#ec4899",
-  };
+const CLASSIFICATION_COLORS: Record<Classification, string> = {
+  bash: "#ef4444",
+  race: "#3b82f6",
+  crawl: "#22c55e",
+  hobby: "#f97316",
+  airfield: "#8b5cf6",
+  boat: "#06b6d4",
+  drone: "#ec4899",
+};
 
-  const color = colors[classification];
+function getMarkerIcon(classifications: Classification[]): L.DivIcon {
+  const colors = classifications.map((c) => CLASSIFICATION_COLORS[c]);
+  const clipId = `pin-${classifications.join("-")}`;
+
+  let fill: string;
+  if (colors.length === 1) {
+    fill = `<path fill="${colors[0]}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>`;
+  } else {
+    // Multi-color: vertical stripes clipped to pin shape
+    const stripeWidth = 19 / colors.length; // pin spans x=5 to x=19
+    const stripes = colors
+      .map((color, i) => `<rect x="${5 + i * stripeWidth}" y="0" width="${stripeWidth + 0.5}" height="24" fill="${color}"/>`)
+      .join("");
+    fill = `
+      <defs><clipPath id="${clipId}"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></clipPath></defs>
+      <g clip-path="url(#${clipId})">${stripes}</g>
+      <path fill="none" stroke="#fff" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+    `;
+  }
 
   const svgIcon = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
-      <path fill="${color}" stroke="#fff" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+      ${fill}
+      ${colors.length === 1 ? '<path fill="none" stroke="#fff" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>' : ''}
       <circle fill="#fff" cx="12" cy="9" r="2.5"/>
     </svg>
   `;
@@ -307,7 +325,7 @@ function MapContent({
         <LocationMarker
           key={location.id}
           location={location}
-          icon={getMarkerIcon(location.classification as Classification)}
+          icon={getMarkerIcon(location.classifications as Classification[])}
           onClick={() => onMarkerClick(location)}
           onViewDetails={() => onViewDetails(location)}
           isSelected={selectedLocation?.id === location.id}

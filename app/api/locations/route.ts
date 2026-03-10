@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const where: Record<string, unknown> = {};
 
     if (classification && classification !== "all") {
-      where.classification = classification;
+      where.classifications = { has: classification };
     }
 
     if (region && region !== "all") {
@@ -99,18 +99,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, latitude, longitude, classification, imageUrl, region, associatedHobbyShopId } = body;
+    const { name, description, latitude, longitude, classifications, imageUrl, region, associatedHobbyShopId } = body;
 
-    if (!name || latitude === undefined || longitude === undefined || !classification) {
+    if (!name || latitude === undefined || longitude === undefined || !classifications) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    if (!["bash", "race", "crawl", "hobby", "airfield", "boat"].includes(classification)) {
+    const validClassifications = ["bash", "race", "crawl", "hobby", "airfield", "boat", "drone"];
+    if (!Array.isArray(classifications) || classifications.length === 0 || !classifications.every((c: string) => validClassifications.includes(c))) {
       return NextResponse.json(
-        { error: "Invalid classification" },
+        { error: "Invalid classifications" },
         { status: 400 }
       );
     }
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
         description: description || null,
         latitude,
         longitude,
-        classification,
+        classifications,
         imageUrl: imageUrl || null,
         region: finalRegion,
         associatedHobbyShopId: associatedHobbyShopId || null,

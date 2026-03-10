@@ -26,7 +26,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
     description: initialData?.description || "",
     latitude: initialData?.latitude || 0,
     longitude: initialData?.longitude || 0,
-    classification: initialData?.classification || "bash",
+    classifications: initialData?.classifications || ["bash"],
     imageUrl: initialData?.imageUrl || "",
     region: initialData?.region || "",
     associatedHobbyShopId: initialData?.associatedHobbyShopId || "",
@@ -235,24 +235,33 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
 
       <div>
         <label className="block text-sm font-semibold text-black mb-1">
-          Classification *
+          Classifications * <span className="font-normal text-gray-400">(select all that apply)</span>
         </label>
         <div className="flex flex-wrap gap-2">
-          {CLASSIFICATIONS.map((c) => (
-            <button
-              key={c.value}
-              type="button"
-              onClick={() => setFormData((prev) => ({ ...prev, classification: c.value }))}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                formData.classification === c.value
-                  ? "text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-              style={formData.classification === c.value ? { backgroundColor: c.color } : {}}
-            >
-              {c.label}
-            </button>
-          ))}
+          {CLASSIFICATIONS.map((c) => {
+            const isSelected = formData.classifications.includes(c.value);
+            return (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => setFormData((prev) => {
+                  const current = prev.classifications;
+                  const updated = isSelected
+                    ? current.filter((v) => v !== c.value)
+                    : [...current, c.value];
+                  return { ...prev, classifications: updated.length > 0 ? updated : current };
+                })}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  isSelected
+                    ? "text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+                style={isSelected ? { backgroundColor: c.color } : {}}
+              >
+                {c.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -274,7 +283,7 @@ export default function LocationForm({ initialData, onSubmit, onCancel, onPositi
         </select>
       </div>
 
-      {formData.classification !== "hobby" && hobbyShops.length > 0 && (
+      {!formData.classifications.includes("hobby") && hobbyShops.length > 0 && (
         <div>
           <label className="block text-sm font-semibold text-black mb-1">
             Nearest Hobby Shop

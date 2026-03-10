@@ -30,7 +30,7 @@ export default function LocationCard({
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "shared">("idle");
   const [isHighlighted, setIsHighlighted] = useState(false);
   const prevLocationId = useRef<string | null>(null);
-  const classification = CLASSIFICATIONS.find((c) => c.value === location.classification);
+  const matchedClassifications = CLASSIFICATIONS.filter((c) => location.classifications.includes(c.value));
 
   // Trigger highlight animation when a new location is selected (non-compact view only)
   useEffect(() => {
@@ -106,13 +106,16 @@ export default function LocationCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-gray-900 truncate">{location.name}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <span
-                className="px-2 py-0.5 rounded-full text-xs text-white"
-                style={{ backgroundColor: classification?.color }}
-              >
-                {classification?.label}
-              </span>
+            <div className="flex flex-wrap items-center gap-1 mt-1">
+              {matchedClassifications.map((c) => (
+                <span
+                  key={c.value}
+                  className="px-2 py-0.5 rounded-full text-xs text-white"
+                  style={{ backgroundColor: c.color }}
+                >
+                  {c.label}
+                </span>
+              ))}
               <div onClick={(e) => e.stopPropagation()}>
                 <VoteButtons
                   locationId={location.id}
@@ -153,12 +156,17 @@ export default function LocationCard({
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="font-bold text-lg text-gray-900">{location.name}</h3>
-          <span
-            className="px-2 py-1 rounded-full text-xs text-white flex-shrink-0"
-            style={{ backgroundColor: classification?.color }}
-          >
-            {classification?.label}
-          </span>
+          <div className="flex flex-wrap gap-1 flex-shrink-0">
+            {matchedClassifications.map((c) => (
+              <span
+                key={c.value}
+                className="px-2 py-1 rounded-full text-xs text-white"
+                style={{ backgroundColor: c.color }}
+              >
+                {c.label}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="flex items-center gap-2 mb-3">

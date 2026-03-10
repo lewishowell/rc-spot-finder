@@ -63,7 +63,7 @@ model Location {
   description    String?
   latitude       Float
   longitude      Float
-  classification String   // "bash" | "race" | "crawl" | "hobby" | "airfield"
+  classifications String[] // e.g. ["bash", "crawl"]
   imageUrl       String?
   region         String?  // e.g., "Northeast", "California"
   createdAt      DateTime @default(now())

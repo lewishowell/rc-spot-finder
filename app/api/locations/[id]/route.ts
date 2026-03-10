@@ -73,11 +73,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const body = await request.json();
 
-    const { name, description, latitude, longitude, classification, imageUrl, region, associatedHobbyShopId } = body;
+    const { name, description, latitude, longitude, classifications, imageUrl, region, associatedHobbyShopId } = body;
 
-    if (classification && !["bash", "race", "crawl", "hobby", "airfield", "boat"].includes(classification)) {
+    const validClassifications = ["bash", "race", "crawl", "hobby", "airfield", "boat", "drone"];
+    if (classifications && (!Array.isArray(classifications) || classifications.length === 0 || !classifications.every((c: string) => validClassifications.includes(c)))) {
       return NextResponse.json(
-        { error: "Invalid classification" },
+        { error: "Invalid classifications" },
         { status: 400 }
       );
     }
@@ -108,7 +109,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         description: description !== undefined ? description : existingLocation.description,
         latitude: latitude ?? existingLocation.latitude,
         longitude: longitude ?? existingLocation.longitude,
-        classification: classification ?? existingLocation.classification,
+        classifications: classifications ?? existingLocation.classifications,
         imageUrl: imageUrl !== undefined ? imageUrl : existingLocation.imageUrl,
         region: region !== undefined ? region : existingLocation.region,
         associatedHobbyShopId: associatedHobbyShopId !== undefined ? (associatedHobbyShopId || null) : existingLocation.associatedHobbyShopId,

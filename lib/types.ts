@@ -6,7 +6,7 @@ export interface Spot {
   description: string | null;
   latitude: number;
   longitude: number;
-  classification: Classification;
+  classifications: Classification[];
   imageUrl: string | null;
   region: string | null;
   createdAt: Date;
@@ -32,7 +32,7 @@ export interface LocationFormData {
   description?: string;
   latitude: number;
   longitude: number;
-  classification: Classification;
+  classifications: Classification[];
   imageUrl?: string;
   region?: string;
   associatedHobbyShopId?: string;

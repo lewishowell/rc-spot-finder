@@ -243,7 +243,7 @@ export default function Home() {
   // Extract hobby shops for the form dropdown
   const hobbyShops = useMemo(() => {
     return locations
-      .filter((loc) => loc.classification === "hobby")
+      .filter((loc) => loc.classifications.includes("hobby"))
       .map((loc) => ({ id: loc.id, name: loc.name }));
   }, [locations]);
 
@@ -329,7 +329,7 @@ export default function Home() {
       description: location.description || "",
       latitude: location.latitude,
       longitude: location.longitude,
-      classification: location.classification as LocationFormData["classification"],
+      classifications: location.classifications as LocationFormData["classifications"],
       imageUrl: location.imageUrl || "",
       region: location.region || "",
       associatedHobbyShopId: location.associatedHobbyShopId || "",
