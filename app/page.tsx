@@ -718,6 +718,7 @@ export default function Home() {
               onDelete={() => handleDelete(selectedLocation)}
               onVoteChange={handleVoteChange}
               onHobbyShopClick={handleHobbyShopClick}
+              onViewProfile={(userId) => setShowUserProfile(userId)}
               isSelected
             />
           ) : (
@@ -735,6 +736,7 @@ export default function Home() {
                     onClick={() => handleFeaturedSpotClick(newestSpot)}
                     onVoteChange={handleVoteChange}
                     onHobbyShopClick={handleHobbyShopClick}
+                    onViewProfile={(userId) => setShowUserProfile(userId)}
                     isSelected={false}
                   />
                 </div>
@@ -746,6 +748,7 @@ export default function Home() {
                     location={loc}
                     onClick={() => handleMarkerClick(loc)}
                     onVoteChange={handleVoteChange}
+                    onViewProfile={(userId) => setShowUserProfile(userId)}
                     isSelected={false}
                     compact
                   />
@@ -821,6 +824,7 @@ export default function Home() {
                 onDelete={() => handleDelete(selectedLocation)}
                 onVoteChange={handleVoteChange}
                 onHobbyShopClick={handleHobbyShopClick}
+                onViewProfile={(userId) => setShowUserProfile(userId)}
                 isSelected
               />
             ) : (
@@ -841,6 +845,7 @@ export default function Home() {
                       onClick={() => handleFeaturedSpotClick(newestSpot)}
                       onVoteChange={handleVoteChange}
                       onHobbyShopClick={handleHobbyShopClick}
+                      onViewProfile={(userId) => setShowUserProfile(userId)}
                       isSelected={false}
                     />
                   </div>
@@ -852,6 +857,7 @@ export default function Home() {
                       location={loc}
                       onClick={() => handleMarkerClick(loc)}
                       onVoteChange={handleVoteChange}
+                      onViewProfile={(userId) => setShowUserProfile(userId)}
                       isSelected={false}
                       compact
                     />

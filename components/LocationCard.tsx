@@ -14,6 +14,7 @@ interface LocationCardProps {
   compact?: boolean;
   onVoteChange?: (locationId: string, upvotes: number, downvotes: number, userVote: number | null) => void;
   onHobbyShopClick?: (hobbyShop: Location) => void;
+  onViewProfile?: (userId: string) => void;
 }
 
 export default function LocationCard({
@@ -25,6 +26,7 @@ export default function LocationCard({
   compact = false,
   onVoteChange,
   onHobbyShopClick,
+  onViewProfile,
 }: LocationCardProps) {
   const { data: session } = useSession();
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "shared">("idle");
@@ -209,9 +211,24 @@ export default function LocationCard({
           </button>
         )}
 
-        {location.user?.name && (
+        {location.user && (location.user.username || location.user.name) && (
           <div className="text-xs text-gray-500 mb-2">
-            Added by: {location.user.name}
+            Added by:{" "}
+            {onViewProfile && !location.isOwner ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewProfile(location.user!.id);
+                }}
+                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors font-medium"
+              >
+                {location.user.username ? `@${location.user.username}` : location.user.name}
+              </button>
+            ) : (
+              <span className="font-medium">
+                {location.user.username ? `@${location.user.username}` : location.user.name}
+              </span>
+            )}
           </div>
         )}
 

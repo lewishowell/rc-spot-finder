@@ -17,6 +17,7 @@ export interface Spot {
   user?: {
     id: string;
     name: string | null;
+    username: string | null;
   };
   upvotes: number;
   downvotes: number;
