@@ -15,7 +15,6 @@ model User {
   emailVerified DateTime?
   image         String?
   defaultRegion String?   // User's preferred default map region
-  instagramUsername String? // Linked Instagram username
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

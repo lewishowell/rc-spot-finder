@@ -26,25 +26,6 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <defs>
-        <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#FFDC80" />
-          <stop offset="25%" stopColor="#F77737" />
-          <stop offset="50%" stopColor="#E1306C" />
-          <stop offset="75%" stopColor="#C13584" />
-          <stop offset="100%" stopColor="#833AB4" />
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#ig-gradient)" strokeWidth="2" />
-      <circle cx="12" cy="12" r="4.5" stroke="url(#ig-gradient)" strokeWidth="2" />
-      <circle cx="17.5" cy="6.5" r="1.25" fill="url(#ig-gradient)" />
-    </svg>
-  );
-}
-
 export default function AuthButton() {
   const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
@@ -68,8 +49,6 @@ export default function AuthButton() {
   }
 
   if (session?.user) {
-    const hasInstagram = !!session.user.instagramAccessToken;
-
     return (
       <div className="relative" ref={dropdownRef}>
         <button
@@ -90,49 +69,15 @@ export default function AuthButton() {
         </button>
 
         {isOpen && (
-          <div className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+          <div className="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
             <div className="px-4 py-2 border-b border-gray-100">
               <p className="text-sm font-medium text-gray-900 truncate">
                 {session.user.name}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {session.user.email || "Instagram account"}
+                {session.user.email}
               </p>
             </div>
-
-            {/* Instagram connection */}
-            {hasInstagram ? (
-              <div className="px-4 py-2 flex items-center gap-2 text-xs text-green-600 border-b border-gray-100">
-                <InstagramIcon className="w-4 h-4" />
-                Instagram connected
-              </div>
-            ) : (
-              <div className="border-b border-gray-100">
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    signIn("instagram");
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
-                >
-                  <InstagramIcon className="w-4 h-4" />
-                  Connect Instagram
-                </button>
-                <p className="px-4 pb-2 text-xs text-gray-400">
-                  Import photos &amp; share spots. Requires a{" "}
-                  <a
-                    href="https://help.instagram.com/502981923235522"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:text-gray-600"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    professional account
-                  </a>{" "}
-                  (free to switch).
-                </p>
-              </div>
-            )}
 
             <button
               onClick={() => {
@@ -150,53 +95,12 @@ export default function AuthButton() {
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-9 h-9 rounded-full bg-white border border-gray-300 shadow-md hover:shadow-lg transition-shadow flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      </button>
-
-      {isOpen && (
-        <div className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              signIn("google");
-            }}
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
-          >
-            <GoogleIcon className="w-4 h-4" />
-            Sign in with Google
-          </button>
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              signIn("instagram");
-            }}
-            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
-          >
-            <InstagramIcon className="w-4 h-4" />
-            Sign in with Instagram
-          </button>
-          <p className="px-4 pb-1 text-xs text-gray-400">
-            Instagram requires a{" "}
-            <a
-              href="https://help.instagram.com/502981923235522"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-gray-600"
-              onClick={(e) => e.stopPropagation()}
-            >
-              professional account
-            </a>{" "}
-            (free to switch).
-          </p>
-        </div>
-      )}
-    </div>
+    <button
+      onClick={() => signIn("google")}
+      className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <GoogleIcon className="w-4 h-4" />
+      <span className="text-sm font-medium text-gray-700">Sign in</span>
+    </button>
   );
 }

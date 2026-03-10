@@ -28,7 +28,6 @@ export default function LocationCard({
 }: LocationCardProps) {
   const { data: session } = useSession();
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "shared">("idle");
-  const [igShareStatus, setIgShareStatus] = useState<"idle" | "sharing" | "shared" | "error">("idle");
   const [isHighlighted, setIsHighlighted] = useState(false);
   const prevLocationId = useRef<string | null>(null);
   const classification = CLASSIFICATIONS.find((c) => c.value === location.classification);
@@ -93,46 +92,6 @@ export default function LocationCard({
       setTimeout(() => setShareStatus("idle"), 2000);
     }
   };
-
-  const handleShareToInstagram = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!location.imageUrl) return;
-
-    setIgShareStatus("sharing");
-    try {
-      const caption = [
-        location.name,
-        location.description,
-        `${classification?.label || "RC Spot"} on RC Spot Finder`,
-        `${window.location.origin}?spot=${location.id}`,
-      ]
-        .filter(Boolean)
-        .join("\n\n");
-
-      const response = await fetch("/api/instagram/publish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageUrl: location.imageUrl,
-          caption,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to share");
-      }
-
-      setIgShareStatus("shared");
-      setTimeout(() => setIgShareStatus("idle"), 3000);
-    } catch (err) {
-      console.error("Instagram share error:", err);
-      setIgShareStatus("error");
-      setTimeout(() => setIgShareStatus("idle"), 3000);
-    }
-  };
-
-  const hasInstagram = !!session?.user?.instagramAccessToken;
 
   if (compact) {
     return (
@@ -298,37 +257,6 @@ export default function LocationCard({
               </>
             )}
           </button>
-          {hasInstagram && location.imageUrl && (
-            <button
-              onClick={handleShareToInstagram}
-              disabled={igShareStatus === "sharing"}
-              className={`px-3 py-2 text-sm rounded-md transition-colors flex items-center gap-1 ${
-                igShareStatus === "shared"
-                  ? "bg-green-100 text-green-700 border border-green-300"
-                  : igShareStatus === "error"
-                  ? "bg-red-100 text-red-700 border border-red-300"
-                  : "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600"
-              }`}
-              title="Share to Instagram"
-            >
-              {igShareStatus === "sharing" ? (
-                <span className="font-medium">Posting...</span>
-              ) : igShareStatus === "shared" ? (
-                <span className="font-medium">Posted!</span>
-              ) : igShareStatus === "error" ? (
-                <span className="font-medium">Failed</span>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                    <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" strokeWidth="2" />
-                    <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="2" />
-                    <circle cx="17.5" cy="6.5" r="1.25" fill="currentColor" />
-                  </svg>
-                  <span className="font-medium hidden sm:inline">Instagram</span>
-                </>
-              )}
-            </button>
-          )}
           {location.isOwner && onEdit && (
             <button
               onClick={(e) => {
