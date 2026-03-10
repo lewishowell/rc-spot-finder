@@ -627,22 +627,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Newest Spot - desktop only */}
-      {!showForm && !selectedLocation && newestSpot && (
-        <div className="hidden md:block fixed bottom-16 left-4 z-[999] w-80">
-          <div className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 bg-white/80 backdrop-blur-sm rounded-t-lg px-3 py-1.5">
-            Newest Spot
-          </div>
-          <LocationCard
-            location={newestSpot}
-            onClick={() => handleFeaturedSpotClick(newestSpot)}
-            onVoteChange={handleVoteChange}
-            onHobbyShopClick={handleHobbyShopClick}
-            isSelected={false}
-          />
-        </div>
-      )}
-
       {/* Desktop Sidebar */}
       <div
         className={`hidden md:flex flex-col bg-white border-l border-gray-200 transition-all duration-300 ${
@@ -721,6 +705,18 @@ export default function Home() {
                   ? "Loading spots..."
                   : `${filteredLocations.length} spot${filteredLocations.length !== 1 ? "s" : ""} found${searchQuery ? ` for "${searchQuery}"` : ""}. Click the map to add a new spot.`}
               </p>
+              {newestSpot && !searchQuery && (
+                <div className="rounded-lg border-2 border-blue-400 bg-blue-50/50 p-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 mb-1 block">Just Added</span>
+                  <LocationCard
+                    location={newestSpot}
+                    onClick={() => handleFeaturedSpotClick(newestSpot)}
+                    onVoteChange={handleVoteChange}
+                    onHobbyShopClick={handleHobbyShopClick}
+                    isSelected={false}
+                  />
+                </div>
+              )}
               <div className="space-y-2">
                 {filteredLocations.map((loc) => (
                   <LocationCard
@@ -815,6 +811,18 @@ export default function Home() {
                   defaultRegion={defaultRegion}
                   onSetDefaultRegion={handleSetDefaultRegion}
                 />
+                {newestSpot && !searchQuery && (
+                  <div className="rounded-lg border-2 border-blue-400 bg-blue-50/50 p-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 mb-1 block">Just Added</span>
+                    <LocationCard
+                      location={newestSpot}
+                      onClick={() => handleFeaturedSpotClick(newestSpot)}
+                      onVoteChange={handleVoteChange}
+                      onHobbyShopClick={handleHobbyShopClick}
+                      isSelected={false}
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   {filteredLocations.map((loc) => (
                     <LocationCard
