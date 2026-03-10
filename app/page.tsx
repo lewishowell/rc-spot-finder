@@ -738,8 +738,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Mobile Featured Spots - shown when not expanded and not viewing a spot */}
-      {!isBottomSheetExpanded && !selectedLocation && !showForm && locations.length > 0 && (
+      {/* Mobile Featured Spots - shown for logged-out users only */}
+      {!session && !isBottomSheetExpanded && !selectedLocation && !showForm && locations.length > 0 && (
         <div className="md:hidden fixed bottom-16 left-0 right-0 z-[1001]" style={{ transform: "translateZ(0)" }}>
           <FeaturedSpots spots={locations} onSpotClick={handleFeaturedSpotClick} />
         </div>
