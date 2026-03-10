@@ -70,9 +70,9 @@ export default function ProfileSettings({ onClose }: ProfileSettingsProps) {
     setSaving(true);
     try {
       const res = await fetch("/api/user/profile", {
-        method: "POST",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, bio, visibility }),
+        body: JSON.stringify({ username, bio, profileVisibility: visibility }),
       });
 
       if (res.ok) {
