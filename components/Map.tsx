@@ -359,10 +359,11 @@ function MapContent({
       {showHeatmap && <HeatmapLayer locations={visibleLocations} />}
       <MarkerClusterGroup
         chunkedLoading
-        maxClusterRadius={50}
+        maxClusterRadius={30}
         spiderfyOnMaxZoom
         showCoverageOnHover={false}
         zoomToBoundsOnClick
+        disableClusteringAtZoom={13}
       >
         {visibleLocations.map((location) => (
           <LocationMarker
