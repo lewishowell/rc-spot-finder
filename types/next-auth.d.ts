@@ -9,6 +9,7 @@ declare module "next-auth" {
       image?: string | null;
       instagramAccessToken?: string;
       instagramUserId?: string;
+      instagramCanPublish?: boolean;
     };
   }
 
@@ -22,5 +23,6 @@ declare module "next-auth/jwt" {
     id?: string;
     instagramAccessToken?: string;
     instagramUserId?: string;
+    instagramCanPublish?: boolean;
   }
 }

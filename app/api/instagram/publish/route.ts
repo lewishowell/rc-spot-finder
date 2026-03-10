@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "No Instagram Business/Creator account found. Please ensure your Instagram account is a Business or Creator account linked to a Facebook Page.",
+            "Publishing requires an Instagram Business or Creator account. You can switch in Instagram Settings > Account > Switch to professional account.",
         },
         { status: 403 }
       );
