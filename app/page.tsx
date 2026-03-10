@@ -929,7 +929,7 @@ export default function Home() {
       {showUserProfile && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserProfile(null)} />
-          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto">
+          <div className="relative z-10 mx-4 max-h-[80vh]">
             <UserProfilePanel
               userId={showUserProfile}
               onClose={() => setShowUserProfile(null)}
@@ -965,7 +965,7 @@ export default function Home() {
       {showRigDetail && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowRigDetail(null)} />
-          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto">
+          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto p-6">
             <RigDetail
               rigId={showRigDetail}
               onClose={() => setShowRigDetail(null)}
