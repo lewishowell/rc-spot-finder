@@ -45,56 +45,9 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
-function InstagramConnectOptions({
-  onSelect,
-  context,
-}: {
-  onSelect: (provider: "instagram" | "instagram-business") => void;
-  context: "sign-in" | "connect";
-}) {
-  const heading = context === "sign-in" ? "Sign in with Instagram" : "Connect Instagram";
-
-  return (
-    <div className="border-b border-gray-100 px-4 py-3">
-      <div className="flex items-center gap-2 mb-2">
-        <InstagramIcon className="w-4 h-4" />
-        <p className="text-sm font-medium text-gray-900">{heading}</p>
-      </div>
-      <p className="text-xs text-gray-500 mb-3">
-        Choose how you&apos;d like to use Instagram with RC Spot Finder:
-      </p>
-
-      <button
-        onClick={() => onSelect("instagram")}
-        className="w-full text-left p-2.5 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors mb-2 group"
-      >
-        <p className="text-sm font-medium text-gray-900 group-hover:text-purple-700">
-          Personal Account
-        </p>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Use your Instagram photos as spot images. Works with any account.
-        </p>
-      </button>
-
-      <button
-        onClick={() => onSelect("instagram-business")}
-        className="w-full text-left p-2.5 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors group"
-      >
-        <p className="text-sm font-medium text-gray-900 group-hover:text-purple-700">
-          Business / Creator Account
-        </p>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Import photos <span className="font-medium">and</span> share spots directly to your Instagram feed. Requires a professional account.
-        </p>
-      </button>
-    </div>
-  );
-}
-
 export default function AuthButton() {
   const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
-  const [showInstagramOptions, setShowInstagramOptions] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -102,7 +55,6 @@ export default function AuthButton() {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        setShowInstagramOptions(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -148,21 +100,38 @@ export default function AuthButton() {
               </p>
             </div>
 
-            {/* Instagram connection status */}
+            {/* Instagram connection */}
             {hasInstagram ? (
               <div className="px-4 py-2 flex items-center gap-2 text-xs text-green-600 border-b border-gray-100">
                 <InstagramIcon className="w-4 h-4" />
-                Instagram connected{session.user.instagramCanPublish ? " (Business)" : " (Personal)"}
+                Instagram connected
               </div>
             ) : (
-              <InstagramConnectOptions
-                context="connect"
-                onSelect={(provider) => {
-                  setIsOpen(false);
-                  setShowInstagramOptions(false);
-                  signIn(provider);
-                }}
-              />
+              <div className="border-b border-gray-100">
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    signIn("instagram");
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+                >
+                  <InstagramIcon className="w-4 h-4" />
+                  Connect Instagram
+                </button>
+                <p className="px-4 pb-2 text-xs text-gray-400">
+                  Import photos &amp; share spots. Requires a{" "}
+                  <a
+                    href="https://help.instagram.com/502981923235522"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-gray-600"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    professional account
+                  </a>{" "}
+                  (free to switch).
+                </p>
+              </div>
             )}
 
             <button
@@ -196,7 +165,6 @@ export default function AuthButton() {
           <button
             onClick={() => {
               setIsOpen(false);
-              setShowInstagramOptions(false);
               signIn("google");
             }}
             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
@@ -204,25 +172,29 @@ export default function AuthButton() {
             <GoogleIcon className="w-4 h-4" />
             Sign in with Google
           </button>
-
-          {showInstagramOptions ? (
-            <InstagramConnectOptions
-              context="sign-in"
-              onSelect={(provider) => {
-                setIsOpen(false);
-                setShowInstagramOptions(false);
-                signIn(provider);
-              }}
-            />
-          ) : (
-            <button
-              onClick={() => setShowInstagramOptions(true)}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              signIn("instagram");
+            }}
+            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+          >
+            <InstagramIcon className="w-4 h-4" />
+            Sign in with Instagram
+          </button>
+          <p className="px-4 pb-1 text-xs text-gray-400">
+            Instagram requires a{" "}
+            <a
+              href="https://help.instagram.com/502981923235522"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-gray-600"
+              onClick={(e) => e.stopPropagation()}
             >
-              <InstagramIcon className="w-4 h-4" />
-              Sign in with Instagram
-            </button>
-          )}
+              professional account
+            </a>{" "}
+            (free to switch).
+          </p>
         </div>
       )}
     </div>

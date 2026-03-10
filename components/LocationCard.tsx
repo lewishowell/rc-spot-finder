@@ -133,7 +133,6 @@ export default function LocationCard({
   };
 
   const hasInstagram = !!session?.user?.instagramAccessToken;
-  const canPublishToInstagram = !!session?.user?.instagramCanPublish;
 
   if (compact) {
     return (
@@ -299,7 +298,7 @@ export default function LocationCard({
               </>
             )}
           </button>
-          {hasInstagram && canPublishToInstagram && location.imageUrl && (
+          {hasInstagram && location.imageUrl && (
             <button
               onClick={handleShareToInstagram}
               disabled={igShareStatus === "sharing"}
