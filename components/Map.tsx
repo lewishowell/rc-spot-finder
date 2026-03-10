@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import { Location, Classification, REGION_COORDINATES } from "@/lib/types";
 import LocationMarker from "./LocationMarker";
@@ -357,25 +356,16 @@ function MapContent({
       <FlyToSearchLocation location={searchLocation} />
       <MapResizer />
       {showHeatmap && <HeatmapLayer locations={visibleLocations} />}
-      <MarkerClusterGroup
-        chunkedLoading
-        maxClusterRadius={30}
-        spiderfyOnMaxZoom
-        showCoverageOnHover={false}
-        zoomToBoundsOnClick
-        disableClusteringAtZoom={13}
-      >
-        {visibleLocations.map((location) => (
-          <LocationMarker
-            key={location.id}
-            location={location}
-            icon={getMarkerIcon(location.classifications as Classification[])}
-            onClick={() => onMarkerClick(location)}
-            onViewDetails={() => onViewDetails(location)}
-            isSelected={selectedLocation?.id === location.id}
-          />
-        ))}
-      </MarkerClusterGroup>
+      {visibleLocations.map((location) => (
+        <LocationMarker
+          key={location.id}
+          location={location}
+          icon={getMarkerIcon(location.classifications as Classification[])}
+          onClick={() => onMarkerClick(location)}
+          onViewDetails={() => onViewDetails(location)}
+          isSelected={selectedLocation?.id === location.id}
+        />
+      ))}
       {newMarkerPosition && (
         <DraggableNewMarker
           position={newMarkerPosition}
