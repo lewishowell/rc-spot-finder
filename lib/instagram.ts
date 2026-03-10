@@ -7,7 +7,7 @@
 
 const GRAPH_API_BASE = "https://graph.instagram.com";
 const GRAPH_API_VERSION = "v21.0";
-const FACEBOOK_GRAPH_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
+const INSTAGRAM_GRAPH_BASE = `https://graph.instagram.com/${GRAPH_API_VERSION}`;
 
 export interface InstagramMedia {
   id: string;
@@ -43,7 +43,7 @@ export interface InstagramUser {
  */
 export async function getInstagramProfile(accessToken: string): Promise<InstagramUser> {
   const response = await fetch(
-    `${GRAPH_API_BASE}/me?fields=id,username,name,profile_picture_url,media_count&access_token=${accessToken}`
+    `${GRAPH_API_BASE}/me?fields=user_id,username,name,profile_picture_url,media_count&access_token=${accessToken}`
   );
 
   if (!response.ok) {
@@ -86,31 +86,22 @@ export async function getInstagramMedia(
 }
 
 /**
- * Get the Instagram Business Account ID linked to a Facebook Page
- * (Required for Content Publishing API)
+ * Get the Instagram user ID for content publishing.
+ * With Instagram Business Login, the user_id comes directly from the /me endpoint.
  */
 export async function getInstagramBusinessAccountId(
   accessToken: string
 ): Promise<string | null> {
-  // First get the user's Facebook Pages
-  const pagesResponse = await fetch(
-    `${FACEBOOK_GRAPH_BASE}/me/accounts?fields=id,instagram_business_account&access_token=${accessToken}`
+  const response = await fetch(
+    `${GRAPH_API_BASE}/me?fields=user_id&access_token=${accessToken}`
   );
 
-  if (!pagesResponse.ok) {
+  if (!response.ok) {
     return null;
   }
 
-  const pagesData = await pagesResponse.json();
-
-  // Find the first page with a linked Instagram Business Account
-  for (const page of pagesData.data || []) {
-    if (page.instagram_business_account?.id) {
-      return page.instagram_business_account.id;
-    }
-  }
-
-  return null;
+  const data = await response.json();
+  return data.user_id || null;
 }
 
 /**
@@ -128,7 +119,7 @@ export async function publishToInstagram(
 ): Promise<{ id: string; permalink?: string }> {
   // Step 1: Create media container
   const containerResponse = await fetch(
-    `${FACEBOOK_GRAPH_BASE}/${igBusinessAccountId}/media`,
+    `${INSTAGRAM_GRAPH_BASE}/${igBusinessAccountId}/media`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -155,7 +146,7 @@ export async function publishToInstagram(
 
   while (retries < maxRetries) {
     const statusResponse = await fetch(
-      `${FACEBOOK_GRAPH_BASE}/${containerId}?fields=status_code&access_token=${accessToken}`
+      `${INSTAGRAM_GRAPH_BASE}/${containerId}?fields=status_code&access_token=${accessToken}`
     );
     const statusData = await statusResponse.json();
 
@@ -175,7 +166,7 @@ export async function publishToInstagram(
 
   // Step 3: Publish
   const publishResponse = await fetch(
-    `${FACEBOOK_GRAPH_BASE}/${igBusinessAccountId}/media_publish`,
+    `${INSTAGRAM_GRAPH_BASE}/${igBusinessAccountId}/media_publish`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -195,7 +186,7 @@ export async function publishToInstagram(
 
   // Get the permalink of the published post
   const mediaResponse = await fetch(
-    `${FACEBOOK_GRAPH_BASE}/${published.id}?fields=permalink&access_token=${accessToken}`
+    `${INSTAGRAM_GRAPH_BASE}/${published.id}?fields=permalink&access_token=${accessToken}`
   );
 
   if (mediaResponse.ok) {

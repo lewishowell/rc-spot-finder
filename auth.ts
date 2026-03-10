@@ -1,8 +1,95 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import Instagram from "next-auth/providers/instagram";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+
+/**
+ * Custom Instagram Business Login provider
+ * Uses the Instagram/Facebook Graph API OAuth flow (not the deprecated Basic Display API)
+ * Docs: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login
+ */
+function InstagramBusiness() {
+  return {
+    id: "instagram",
+    name: "Instagram",
+    type: "oauth" as const,
+    authorization: {
+      url: "https://www.instagram.com/oauth/authorize",
+      params: {
+        enable_fb_login: "0",
+        force_authentication: "1",
+        response_type: "code",
+        scope: "instagram_business_basic,instagram_business_content_publish,instagram_business_manage_messages",
+      },
+    },
+    token: {
+      url: "https://api.instagram.com/oauth/access_token",
+      async request({ params, provider }: { params: Record<string, string>; provider: { clientId: string; clientSecret: string; callbackUrl: string } }) {
+        // Instagram Business Login requires form-encoded POST
+        const body = new URLSearchParams({
+          client_id: provider.clientId,
+          client_secret: provider.clientSecret,
+          grant_type: "authorization_code",
+          redirect_uri: provider.callbackUrl,
+          code: params.code!,
+        });
+
+        const response = await fetch("https://api.instagram.com/oauth/access_token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body.toString(),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(`Instagram token exchange failed: ${error}`);
+        }
+
+        const tokens = await response.json();
+
+        // Exchange short-lived token for long-lived token
+        const longLivedResponse = await fetch(
+          `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${provider.clientSecret}&access_token=${tokens.access_token}`
+        );
+
+        if (longLivedResponse.ok) {
+          const longLived = await longLivedResponse.json();
+          return {
+            tokens: {
+              access_token: longLived.access_token,
+              token_type: longLived.token_type || "bearer",
+              expires_at: longLived.expires_in
+                ? Math.floor(Date.now() / 1000) + longLived.expires_in
+                : undefined,
+            },
+          };
+        }
+
+        // Fall back to short-lived token
+        return {
+          tokens: {
+            access_token: tokens.access_token,
+            token_type: "bearer",
+          },
+        };
+      },
+    },
+    userinfo: {
+      url: "https://graph.instagram.com/me",
+      params: { fields: "user_id,username,name,profile_picture_url" },
+    },
+    profile(profile: Record<string, unknown>) {
+      return {
+        id: profile.user_id as string,
+        name: (profile.name as string) || (profile.username as string),
+        email: null,
+        image: profile.profile_picture_url as string | undefined,
+      };
+    },
+    clientId: process.env.INSTAGRAM_CLIENT_ID!,
+    clientSecret: process.env.INSTAGRAM_CLIENT_SECRET!,
+  };
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -11,15 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    Instagram({
-      clientId: process.env.INSTAGRAM_CLIENT_ID!,
-      clientSecret: process.env.INSTAGRAM_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          scope: "instagram_basic,instagram_content_publish,instagram_manage_insights,pages_show_list,pages_read_engagement",
-        },
-      },
-    }),
+    InstagramBusiness(),
   ],
   session: {
     strategy: "jwt",
