@@ -26,6 +26,7 @@ export interface Spot {
   commentCount: number;
   favoriteCount: number;
   checkInCount: number;
+  photoCount: number;
   isFavorited: boolean;
 }
 

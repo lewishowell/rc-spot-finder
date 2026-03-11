@@ -30,6 +30,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
             comments: true,
             favorites: true,
             checkIns: true,
+            photos: true,
           },
         },
         ...(userId ? {
@@ -67,6 +68,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       commentCount: _count.comments,
       favoriteCount: _count.favorites,
       checkInCount: _count.checkIns,
+      photoCount: _count.photos,
       isFavorited: Array.isArray(favorites) && favorites.length > 0,
     });
   } catch (error) {
@@ -148,6 +150,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
             comments: true,
             favorites: true,
             checkIns: true,
+            photos: true,
           },
         },
         favorites: {
@@ -173,6 +176,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       commentCount: _count.comments,
       favoriteCount: _count.favorites,
       checkInCount: _count.checkIns,
+      photoCount: _count.photos,
       isFavorited: Array.isArray(favorites) && favorites.length > 0,
     });
   } catch (error) {

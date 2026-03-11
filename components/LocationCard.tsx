@@ -396,6 +396,7 @@ export default function LocationCard({
             locationId={location.id}
             spotOwnerId={location.userId}
             coverImageUrl={location.imageUrl}
+            photoCount={location.photoCount}
             onViewProfile={onViewProfile}
           />
         </div>

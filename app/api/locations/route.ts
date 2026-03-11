@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
             comments: true,
             favorites: true,
             checkIns: true,
+            photos: true,
           },
         },
         ...(userId ? {
@@ -89,6 +90,7 @@ export async function GET(request: NextRequest) {
         commentCount: _count.comments,
         favoriteCount: _count.favorites,
         checkInCount: _count.checkIns,
+        photoCount: _count.photos,
         isFavorited: Array.isArray(favorites) && favorites.length > 0,
       };
     });
@@ -191,6 +193,7 @@ export async function POST(request: NextRequest) {
       commentCount: 0,
       favoriteCount: 0,
       checkInCount: 0,
+      photoCount: 0,
       isFavorited: false,
     }, { status: 201 });
   } catch (error) {
