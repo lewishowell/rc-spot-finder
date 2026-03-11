@@ -614,6 +614,7 @@ export default function Home() {
           selectedRegion={filters.region}
           editingLocationId={showForm && formMode === "edit" ? selectedLocation?.id : undefined}
           searchLocation={searchLocation}
+          autoZoomToDensest={!filters.region && !selectedLocation}
         />
 
         {/* Desktop sidebar toggle - stays inside map container */}

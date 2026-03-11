@@ -51,6 +51,7 @@ interface MapProps {
   editingLocationId?: string;
   searchLocation?: { lat: number; lng: number } | null;
   showHeatmap?: boolean;
+  autoZoomToDensest?: boolean;
 }
 
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
@@ -168,6 +169,55 @@ function FlyToSearchLocation({ location }: { location?: { lat: number; lng: numb
       prevLocation.current = null;
     }
   }, [location, map]);
+
+  return null;
+}
+
+function FlyToDensestArea({ locations }: { locations: Location[] }) {
+  const map = useMap();
+  const hasFired = useRef(false);
+
+  useEffect(() => {
+    if (hasFired.current || locations.length === 0) return;
+    hasFired.current = true;
+
+    // Grid-based density: divide into cells and find the densest one
+    const gridSize = 2; // degrees per cell
+    const cells: Record<string, { lats: number[]; lngs: number[] }> = {};
+
+    for (const loc of locations) {
+      const cellKey = `${Math.floor(loc.latitude / gridSize)},${Math.floor(loc.longitude / gridSize)}`;
+      if (!cells[cellKey]) {
+        cells[cellKey] = { lats: [], lngs: [] };
+      }
+      const cell = cells[cellKey];
+      cell.lats.push(loc.latitude);
+      cell.lngs.push(loc.longitude);
+    }
+
+    // Find the cell with the most spots
+    let bestCell: { lats: number[]; lngs: number[] } | null = null;
+    let bestCount = 0;
+    for (const cell of Object.values(cells)) {
+      if (cell.lats.length > bestCount) {
+        bestCount = cell.lats.length;
+        bestCell = cell;
+      }
+    }
+
+    if (bestCell && bestCount > 1) {
+      const avgLat = bestCell.lats.reduce((a, b) => a + b, 0) / bestCell.lats.length;
+      const avgLng = bestCell.lngs.reduce((a, b) => a + b, 0) / bestCell.lngs.length;
+
+      // Pick zoom based on spread within the cluster
+      const latSpread = Math.max(...bestCell.lats) - Math.min(...bestCell.lats);
+      const lngSpread = Math.max(...bestCell.lngs) - Math.min(...bestCell.lngs);
+      const spread = Math.max(latSpread, lngSpread);
+      const zoom = spread < 0.5 ? 10 : spread < 1 ? 8 : spread < 2 ? 7 : 6;
+
+      map.flyTo([avgLat, avgLng], zoom, { duration: 1 });
+    }
+  }, [locations, map]);
 
   return null;
 }
@@ -332,6 +382,7 @@ function MapContent({
   editingLocationId,
   searchLocation,
   showHeatmap,
+  autoZoomToDensest,
   mapType,
 }: MapProps & { mapType: MapType }) {
   const visibleLocations = locations.filter((location) => location.id !== editingLocationId);
@@ -369,6 +420,7 @@ function MapContent({
       <ResetMapView resetView={resetView} />
       <FlyToRegion region={selectedRegion} />
       <FlyToSearchLocation location={searchLocation} />
+      {autoZoomToDensest && <FlyToDensestArea locations={locations} />}
       <MapResizer />
       {showHeatmap && <HeatmapLayer locations={visibleLocations} />}
       {visibleLocations.map((location) => (
