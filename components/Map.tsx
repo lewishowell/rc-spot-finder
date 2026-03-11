@@ -77,9 +77,9 @@ function FlyToLocation({ location }: { location: Location | null }) {
         // We shift the center up so the popup appears below the search bar
         const targetLatLng = L.latLng(location.latitude, location.longitude);
         const targetPoint = map.project(targetLatLng, 14);
-        // Offset so the marker sits in the lower-center of screen,
-        // giving the popup (which opens above) room below the search bar
-        const offsetPoint = L.point(targetPoint.x, targetPoint.y + 120);
+        // Negative Y = map center shifts down on screen, pushing marker+popup down
+        // so the popup clears the search bar at the top
+        const offsetPoint = L.point(targetPoint.x, targetPoint.y - 150);
         const offsetLatLng = map.unproject(offsetPoint, 14);
         map.flyTo(offsetLatLng, 14, { duration: 0.5 });
       } else {
