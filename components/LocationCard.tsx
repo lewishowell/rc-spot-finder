@@ -6,6 +6,7 @@ import { Location, CLASSIFICATIONS } from "@/lib/types";
 import VoteButtons from "./VoteButtons";
 import CommentSection from "./CommentSection";
 import CheckInSection from "./CheckInSection";
+import SpotPhotoGallery from "./SpotPhotoGallery";
 
 interface LocationCardProps {
   location: Location;
@@ -386,6 +387,16 @@ export default function LocationCard({
             onCheckInCountChange={setCheckInCount}
             onViewProfile={onViewProfile}
             onViewRig={onViewRig}
+          />
+        </div>
+
+        {/* Photo Gallery */}
+        <div className="mt-1" onClick={(e) => e.stopPropagation()}>
+          <SpotPhotoGallery
+            locationId={location.id}
+            spotOwnerId={location.userId}
+            coverImageUrl={location.imageUrl}
+            onViewProfile={onViewProfile}
           />
         </div>
       </div>

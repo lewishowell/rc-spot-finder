@@ -34,6 +34,7 @@ model User {
   comments               Comment[]
   favorites              Favorite[]
   checkIns               CheckIn[]
+  spotPhotos             SpotPhoto[]
 }
 
 model Account {
@@ -97,6 +98,7 @@ model Location {
   comments   Comment[]
   favorites  Favorite[]
   checkIns   CheckIn[]
+  photos     SpotPhoto[]
 
   @@index([userId])
 }
@@ -227,6 +229,22 @@ model CheckIn {
 
   rigId      String?
   rig        Rig?     @relation(fields: [rigId], references: [id], onDelete: SetNull)
+
+  @@index([locationId, createdAt])
+  @@index([userId])
+}
+
+model SpotPhoto {
+  id         String   @id @default(cuid())
+  imageUrl   String
+  caption    String?
+  createdAt  DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
   @@index([locationId, createdAt])
   @@index([userId])
