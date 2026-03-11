@@ -101,7 +101,7 @@ export default function CheckInSection({ locationId, checkInCount, onCheckInCoun
 
       if (res.ok) {
         const data = await res.json();
-        setImageUrl(data.url);
+        setImageUrl(data.imageUrl);
       }
     } catch (err) {
       console.error("Error uploading image:", err);

@@ -64,7 +64,7 @@ export default function SpotPhotoGallery({ locationId, spotOwnerId, coverImageUr
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       if (res.ok) {
         const data = await res.json();
-        setUploadedUrl(data.url);
+        setUploadedUrl(data.imageUrl);
       }
     } catch (err) {
       console.error("Error uploading:", err);
