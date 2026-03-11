@@ -23,6 +23,10 @@ export interface Spot {
   downvotes: number;
   userVote: number | null;
   isOwner: boolean;
+  commentCount: number;
+  favoriteCount: number;
+  checkInCount: number;
+  isFavorited: boolean;
 }
 
 // Re-export as Location for component compatibility
@@ -42,9 +46,10 @@ export interface LocationFormData {
 export interface FilterOptions {
   classification?: Classification | "all";
   region?: string;
-  sortBy?: "name" | "votes" | "createdAt";
+  sortBy?: "name" | "votes" | "createdAt" | "distance";
   sortOrder?: "asc" | "desc";
   mySpots?: boolean;
+  myFavorites?: boolean;
 }
 
 export const CLASSIFICATIONS: { value: Classification; label: string; color: string }[] = [

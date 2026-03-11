@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Location, CLASSIFICATIONS } from "@/lib/types";
 import VoteButtons from "./VoteButtons";
+import CommentSection from "./CommentSection";
+import CheckInSection from "./CheckInSection";
 
 interface LocationCardProps {
   location: Location;
@@ -15,6 +17,8 @@ interface LocationCardProps {
   onVoteChange?: (locationId: string, upvotes: number, downvotes: number, userVote: number | null) => void;
   onHobbyShopClick?: (hobbyShop: Location) => void;
   onViewProfile?: (userId: string) => void;
+  onViewRig?: (rigId: string) => void;
+  onFavoriteChange?: (locationId: string, isFavorited: boolean, favoriteCount: number) => void;
 }
 
 export default function LocationCard({
@@ -27,6 +31,8 @@ export default function LocationCard({
   onVoteChange,
   onHobbyShopClick,
   onViewProfile,
+  onViewRig,
+  onFavoriteChange,
 }: LocationCardProps) {
   const { data: session } = useSession();
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "shared">("idle");
@@ -43,6 +49,46 @@ export default function LocationCard({
       return () => clearTimeout(timer);
     }
   }, [location.id, isSelected, compact]);
+
+  const [isFav, setIsFav] = useState(location.isFavorited);
+  const [favCount, setFavCount] = useState(location.favoriteCount);
+  const [commentCount, setCommentCount] = useState(location.commentCount);
+  const [checkInCount, setCheckInCount] = useState(location.checkInCount);
+
+  // Sync with prop changes
+  useEffect(() => {
+    setIsFav(location.isFavorited);
+    setFavCount(location.favoriteCount);
+    setCommentCount(location.commentCount);
+    setCheckInCount(location.checkInCount);
+  }, [location.isFavorited, location.favoriteCount, location.commentCount, location.checkInCount]);
+
+  const handleFavoriteToggle = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!session) return;
+
+    const prevFav = isFav;
+    const prevCount = favCount;
+    // Optimistic update
+    setIsFav(!isFav);
+    setFavCount(isFav ? favCount - 1 : favCount + 1);
+
+    try {
+      const res = await fetch(`/api/locations/${location.id}/favorite`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setIsFav(data.isFavorited);
+        setFavCount(data.favoriteCount);
+        onFavoriteChange?.(location.id, data.isFavorited, data.favoriteCount);
+      } else {
+        setIsFav(prevFav);
+        setFavCount(prevCount);
+      }
+    } catch {
+      setIsFav(prevFav);
+      setFavCount(prevCount);
+    }
+  }, [session, isFav, favCount, location.id, onFavoriteChange]);
 
   const handleVoteChange = (upvotes: number, downvotes: number, userVote: number | null) => {
     if (onVoteChange) {
@@ -254,13 +300,29 @@ export default function LocationCard({
           <p>Added: {new Date(location.createdAt).toLocaleDateString()}</p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={onClick}
             className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
           >
             View on Map
           </button>
+          {session && (
+            <button
+              onClick={handleFavoriteToggle}
+              className={`px-3 py-2 text-sm rounded-md border-2 transition-colors flex items-center gap-1 ${
+                isFav
+                  ? "border-red-300 text-red-500 bg-red-50 hover:bg-red-100"
+                  : "border-gray-500 text-gray-600 bg-white hover:bg-gray-50"
+              }`}
+              title={isFav ? "Remove from favorites" : "Add to favorites"}
+            >
+              <svg className="w-4 h-4" fill={isFav ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              {favCount > 0 && <span className="text-xs">{favCount}</span>}
+            </button>
+          )}
           <button
             onClick={handleShare}
             className="px-3 py-2 bg-white border-2 border-gray-500 text-sm rounded-md hover:bg-gray-50 transition-colors flex items-center gap-1"
@@ -304,6 +366,27 @@ export default function LocationCard({
               Delete
             </button>
           )}
+        </div>
+
+        {/* Comments */}
+        <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+          <CommentSection
+            locationId={location.id}
+            commentCount={commentCount}
+            onCommentCountChange={setCommentCount}
+            onViewProfile={onViewProfile}
+          />
+        </div>
+
+        {/* Check-ins */}
+        <div className="mt-1" onClick={(e) => e.stopPropagation()}>
+          <CheckInSection
+            locationId={location.id}
+            checkInCount={checkInCount}
+            onCheckInCountChange={setCheckInCount}
+            onViewProfile={onViewProfile}
+            onViewRig={onViewRig}
+          />
         </div>
       </div>
     </div>

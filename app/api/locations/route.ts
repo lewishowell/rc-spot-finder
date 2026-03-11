@@ -31,10 +31,16 @@ export async function GET(request: NextRequest) {
       where.userId = userId;
     }
 
+    const myFavorites = searchParams.get("myFavorites") === "true";
+
+    if (myFavorites && userId) {
+      where.favorites = { some: { userId } };
+    }
+
     const locations = await prisma.location.findMany({
       where,
-      orderBy: sortBy === "votes"
-        ? undefined // We'll sort in memory for votes
+      orderBy: sortBy === "votes" || sortBy === "distance"
+        ? undefined // We'll sort in memory
         : { [sortBy]: sortOrder },
       include: {
         associatedHobbyShop: true,
@@ -46,6 +52,19 @@ export async function GET(request: NextRequest) {
             username: true,
           },
         },
+        _count: {
+          select: {
+            comments: true,
+            favorites: true,
+            checkIns: true,
+          },
+        },
+        ...(userId ? {
+          favorites: {
+            where: { userId },
+            select: { id: true },
+          },
+        } : {}),
       },
     });
 
@@ -59,7 +78,7 @@ export async function GET(request: NextRequest) {
       const isOwner = userId === loc.userId;
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { votes, ...locationWithoutVotes } = loc;
+      const { votes, _count, favorites, ...locationWithoutVotes } = loc as typeof loc & { favorites?: { id: string }[] };
 
       return {
         ...locationWithoutVotes,
@@ -67,6 +86,10 @@ export async function GET(request: NextRequest) {
         downvotes,
         userVote,
         isOwner,
+        commentCount: _count.comments,
+        favoriteCount: _count.favorites,
+        checkInCount: _count.checkIns,
+        isFavorited: Array.isArray(favorites) && favorites.length > 0,
       };
     });
 
@@ -165,6 +188,10 @@ export async function POST(request: NextRequest) {
       downvotes: 0,
       userVote: null,
       isOwner: true,
+      commentCount: 0,
+      favoriteCount: 0,
+      checkInCount: 0,
+      isFavorited: false,
     }, { status: 201 });
   } catch (error) {
     console.error("Error creating location:", error);

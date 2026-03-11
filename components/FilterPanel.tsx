@@ -69,22 +69,41 @@ export default function FilterPanel({
       {isOpen && (
         <div className="p-4 space-y-4 border-t">
           {session && (
-            <div
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => onFiltersChange({ ...filters, mySpots: !filters.mySpots })}
-            >
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                filters.mySpots
-                  ? "bg-blue-600 border-blue-600"
-                  : "bg-white border-gray-300"
-              }`}>
-                {filters.mySpots && (
-                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
+            <div className="space-y-2">
+              <div
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => onFiltersChange({ ...filters, mySpots: !filters.mySpots })}
+              >
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                  filters.mySpots
+                    ? "bg-blue-600 border-blue-600"
+                    : "bg-white border-gray-300"
+                }`}>
+                  {filters.mySpots && (
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm font-semibold text-black">My Spots Only</span>
               </div>
-              <span className="text-sm font-semibold text-black">My Spots Only</span>
+              <div
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => onFiltersChange({ ...filters, myFavorites: !filters.myFavorites })}
+              >
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                  filters.myFavorites
+                    ? "bg-red-500 border-red-500"
+                    : "bg-white border-gray-300"
+                }`}>
+                  {filters.myFavorites && (
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm font-semibold text-black">My Favorites</span>
+              </div>
             </div>
           )}
 
@@ -181,6 +200,7 @@ export default function FilterPanel({
               <option value="createdAt">Date Added</option>
               <option value="votes">Community Votes</option>
               <option value="name">Name</option>
+              <option value="distance">Near Me</option>
             </select>
           </div>
 
@@ -211,6 +231,7 @@ export default function FilterPanel({
                 sortBy: "createdAt",
                 sortOrder: "desc",
                 mySpots: false,
+                myFavorites: false,
               })
             }
             className="w-full px-4 py-2 text-sm text-black font-medium bg-white border-2 border-gray-500 rounded-md hover:bg-gray-50 transition-colors"

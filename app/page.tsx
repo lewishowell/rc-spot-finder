@@ -112,6 +112,9 @@ export default function Home() {
       if (filters.mySpots) {
         params.set("mySpots", "true");
       }
+      if (filters.myFavorites) {
+        params.set("myFavorites", "true");
+      }
 
       const response = await fetch(`/api/locations?${params.toString()}`);
       if (!response.ok) throw new Error("Failed to fetch");
@@ -256,13 +259,42 @@ export default function Home() {
     setIsBottomSheetExpanded(true);
   }, []);
 
+  const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Request user location when "Near Me" sort is selected
+  useEffect(() => {
+    if (filters.sortBy === "distance" && !userPosition && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {} // silently fail
+      );
+    }
+  }, [filters.sortBy, userPosition]);
+
   // Filter locations by search terms (name/description matching)
   const filteredLocations: Spot[] = useMemo(() => {
-    if (searchTerms.length === 0) {
-      return locations;
+    let result = searchTerms.length === 0
+      ? locations
+      : locations.filter((loc) => matchesSearch(loc, searchTerms));
+
+    // Client-side distance sort using Haversine formula
+    if (filters.sortBy === "distance" && userPosition) {
+      const toRad = (deg: number) => (deg * Math.PI) / 180;
+      const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 3959; // miles
+      };
+      result = [...result].sort((a, b) => {
+        const distA = haversine(userPosition.lat, userPosition.lng, a.latitude, a.longitude);
+        const distB = haversine(userPosition.lat, userPosition.lng, b.latitude, b.longitude);
+        return distA - distB;
+      });
     }
-    return locations.filter((loc) => matchesSearch(loc, searchTerms));
-  }, [locations, searchTerms]);
+
+    return result;
+  }, [locations, searchTerms, filters.sortBy, userPosition]);
 
   // Extract hobby shops for the form dropdown
   const hobbyShops = useMemo(() => {
@@ -334,6 +366,24 @@ export default function Home() {
     setSelectedLocation(spot);
     setIsBottomSheetExpanded(true);
     setIsSidebarOpen(true);
+  }, []);
+
+  const handleFavoriteChange = useCallback((locationId: string, isFavorited: boolean, favoriteCount: number) => {
+    setLocations((prev) =>
+      prev.map((loc) =>
+        loc.id === locationId ? { ...loc, isFavorited, favoriteCount } : loc
+      )
+    );
+    if (selectedLocation?.id === locationId) {
+      setSelectedLocation((prev) =>
+        prev ? { ...prev, isFavorited, favoriteCount } : null
+      );
+    }
+  }, [selectedLocation?.id]);
+
+  const handleViewRigFromCard = useCallback((rigId: string) => {
+    setRigDetailBackTo(null);
+    setShowRigDetail(rigId);
   }, []);
 
   const handleVoteChange = useCallback((locationId: string, upvotes: number, downvotes: number, userVote: number | null) => {
@@ -725,6 +775,8 @@ export default function Home() {
               onVoteChange={handleVoteChange}
               onHobbyShopClick={handleHobbyShopClick}
               onViewProfile={(userId) => setShowUserProfile(userId)}
+              onViewRig={handleViewRigFromCard}
+              onFavoriteChange={handleFavoriteChange}
               isSelected
             />
           ) : (
@@ -743,6 +795,8 @@ export default function Home() {
                     onVoteChange={handleVoteChange}
                     onHobbyShopClick={handleHobbyShopClick}
                     onViewProfile={(userId) => setShowUserProfile(userId)}
+                    onViewRig={handleViewRigFromCard}
+                    onFavoriteChange={handleFavoriteChange}
                     isSelected={false}
                   />
                 </div>
@@ -755,6 +809,7 @@ export default function Home() {
                     onClick={() => handleMarkerClick(loc)}
                     onVoteChange={handleVoteChange}
                     onViewProfile={(userId) => setShowUserProfile(userId)}
+                    onFavoriteChange={handleFavoriteChange}
                     isSelected={false}
                     compact
                   />
@@ -831,6 +886,8 @@ export default function Home() {
                 onVoteChange={handleVoteChange}
                 onHobbyShopClick={handleHobbyShopClick}
                 onViewProfile={(userId) => setShowUserProfile(userId)}
+                onViewRig={handleViewRigFromCard}
+                onFavoriteChange={handleFavoriteChange}
                 isSelected
               />
             ) : (
@@ -852,6 +909,8 @@ export default function Home() {
                       onVoteChange={handleVoteChange}
                       onHobbyShopClick={handleHobbyShopClick}
                       onViewProfile={(userId) => setShowUserProfile(userId)}
+                      onViewRig={handleViewRigFromCard}
+                      onFavoriteChange={handleFavoriteChange}
                       isSelected={false}
                     />
                   </div>
@@ -864,6 +923,7 @@ export default function Home() {
                       onClick={() => handleMarkerClick(loc)}
                       onVoteChange={handleVoteChange}
                       onViewProfile={(userId) => setShowUserProfile(userId)}
+                      onFavoriteChange={handleFavoriteChange}
                       isSelected={false}
                       compact
                     />
