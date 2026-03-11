@@ -436,11 +436,15 @@ export default function Home() {
   };
 
   const handleViewDetails = (location: Spot) => {
-    setSelectedLocation(location);
-    setShowForm(false);
-    setNewMarkerPosition(null);
-    setIsBottomSheetExpanded(true); // Expand bottom sheet on mobile
-    setIsSidebarOpen(true); // Open sidebar on desktop
+    // Briefly deselect to close the map popup, then reselect
+    setSelectedLocation(null);
+    setTimeout(() => {
+      setSelectedLocation(location);
+      setShowForm(false);
+      setNewMarkerPosition(null);
+      setIsBottomSheetExpanded(true); // Expand bottom sheet on mobile
+      setIsSidebarOpen(true); // Open sidebar on desktop
+    }, 50);
   };
 
   const handleHobbyShopClick = useCallback((hobbyShop: Spot) => {
@@ -830,7 +834,7 @@ export default function Home() {
       {/* Mobile Bottom Sheet */}
       <div
         className={`md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)] ${
-          isBottomSheetExpanded ? "h-[70vh]" : "h-16"
+          isBottomSheetExpanded ? "h-[calc(100vh-80px)]" : "h-16"
         }`}
         style={{
           transform: "translateZ(0)",
@@ -855,7 +859,7 @@ export default function Home() {
 
         {/* Content */}
         {isBottomSheetExpanded && (
-          <div className="flex-1 overflow-y-auto px-4 pb-4 max-h-[calc(70vh-60px)]">
+          <div className="flex-1 overflow-y-auto px-4 pb-4 max-h-[calc(100vh-140px)]">
             {(showForm || selectedLocation) && (
               <button
                 onClick={handleBackToList}
