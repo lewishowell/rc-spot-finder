@@ -6,6 +6,10 @@ import Providers from "@/components/Providers";
 export const metadata: Metadata = {
   title: "RC Spot Finder",
   description: "Discover and share RC car, truck, and crawler spots",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

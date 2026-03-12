@@ -66,6 +66,7 @@ export default function FeatureRequestModal({ onClose }: FeatureRequestModalProp
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
+              <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-6 mb-3" />
               <h3 className="text-lg font-semibold text-gray-900 mb-1">Feedback & Bug Reports</h3>
               <p className="text-sm text-gray-500 mb-4">
                 Have an idea to improve RC Spot Finder? Found a bug? Let us know!

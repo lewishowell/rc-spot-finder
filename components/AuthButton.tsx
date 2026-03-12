@@ -107,6 +107,7 @@ export default function AuthButton({ onOpenFriends, onOpenProfile, onOpenGarage,
         {isOpen && (
           <div className="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
             <div className="px-4 py-2 border-b border-gray-100">
+              <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-5 mb-2" />
               <p className="text-sm font-medium text-gray-900 truncate">
                 {session.user.name}
               </p>

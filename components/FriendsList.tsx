@@ -335,8 +335,9 @@ export default function FriendsList({ onClose, onViewProfile }: FriendsListProps
             {loadingFriends ? (
               <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
             ) : friends.length === 0 ? (
-              <div className="p-4 text-center text-gray-400 text-sm">
-                No friends yet. Search for users above to add friends.
+              <div className="p-6 text-center">
+                <img src="/favicon.svg" alt="" className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm text-gray-400">No friends yet. Search for users above to add friends.</p>
               </div>
             ) : (
               <div className="space-y-1">
