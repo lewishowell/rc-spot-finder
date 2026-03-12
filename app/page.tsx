@@ -638,8 +638,11 @@ export default function Home() {
         {/* Search box and auth button */}
         <div
           className="absolute top-0 left-0 right-0 p-4 pointer-events-auto"
-          style={{ paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))" }}
+          style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top, 0px))" }}
         >
+          <div className="flex items-center justify-center mb-2">
+            <img src="/logo.svg" alt="RC Spot Finder" className="h-8" />
+          </div>
           <div className="flex gap-2 items-start">
             <div className="flex-shrink-0">
               <AuthButton
@@ -718,7 +721,7 @@ export default function Home() {
       >
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-bold text-gray-900">RC Spot Finder</h1>
+            <img src="/logo.svg" alt="RC Spot Finder" className="h-10" />
             <div className="flex items-center gap-2">
               {session && (
                 <button
