@@ -849,15 +849,17 @@ export default function Home() {
         {/* Handle */}
         <div
           onClick={() => setIsBottomSheetExpanded(!isBottomSheetExpanded)}
-          className="w-full py-3 flex flex-col items-center cursor-pointer touch-none"
+          className="w-full py-3 px-4 flex items-center cursor-pointer touch-none"
         >
-          <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-1" />
-          <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 mb-1" />
-          <span className="text-xs text-gray-400">
-            {isBottomSheetExpanded
-              ? "Swipe down to close"
-              : `${filteredLocations.length} spots found`}
-          </span>
+          <div className="flex-1 flex flex-col items-center">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-1" />
+            <span className="text-xs text-gray-400">
+              {isBottomSheetExpanded
+                ? "Swipe down to close"
+                : `${filteredLocations.length} spots found`}
+            </span>
+          </div>
+          <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0" />
         </div>
 
         {/* Content */}
