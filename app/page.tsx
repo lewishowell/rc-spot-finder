@@ -655,7 +655,7 @@ export default function Home() {
                 placeholder="Search spots..."
               />
             </div>
-            <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0" style={{ maxWidth: "90px" }} />
+            <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0 bg-white rounded-lg px-1 shadow-sm" style={{ maxWidth: "90px" }} />
           </div>
         </div>
 
@@ -851,6 +851,7 @@ export default function Home() {
           onClick={() => setIsBottomSheetExpanded(!isBottomSheetExpanded)}
           className="w-full py-3 px-4 flex items-center cursor-pointer touch-none"
         >
+          <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0" />
           <div className="flex-1 flex flex-col items-center">
             <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-1" />
             <span className="text-xs text-gray-400">
@@ -859,7 +860,6 @@ export default function Home() {
                 : `${filteredLocations.length} spots found`}
             </span>
           </div>
-          <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0" />
         </div>
 
         {/* Content */}
