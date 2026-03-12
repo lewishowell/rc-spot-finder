@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { Location, CLASSIFICATIONS } from "@/lib/types";
@@ -13,11 +14,20 @@ interface LocationMarkerProps {
 }
 
 export default function LocationMarker({ location, icon, onClick, onViewDetails, isSelected }: LocationMarkerProps) {
-  const classification = CLASSIFICATIONS.find((c) => c.value === location.classification);
+  const matchedClassifications = CLASSIFICATIONS.filter((c) => location.classifications.includes(c.value));
   const score = location.upvotes - location.downvotes;
+  const markerRef = useRef<L.Marker>(null);
+
+  // Close popup when deselected
+  useEffect(() => {
+    if (!isSelected && markerRef.current) {
+      markerRef.current.closePopup();
+    }
+  }, [isSelected]);
 
   return (
     <Marker
+      ref={markerRef}
       position={[location.latitude, location.longitude]}
       icon={icon}
       eventHandlers={{
@@ -26,14 +36,25 @@ export default function LocationMarker({ location, icon, onClick, onViewDetails,
     >
       <Popup>
         <div className="min-w-[200px]">
+          {location.imageUrl && (
+            <img
+              src={location.imageUrl}
+              alt={location.name}
+              className="w-full h-24 object-cover rounded-md mb-2"
+              loading="lazy"
+            />
+          )}
           <h3 className="font-bold text-lg mb-1">{location.name}</h3>
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className="px-2 py-0.5 rounded-full text-xs text-white"
-              style={{ backgroundColor: classification?.color }}
-            >
-              {classification?.label}
-            </span>
+          <div className="flex flex-wrap items-center gap-1 mb-2">
+            {matchedClassifications.map((c) => (
+              <span
+                key={c.value}
+                className="px-2 py-0.5 rounded-full text-xs text-white"
+                style={{ backgroundColor: c.color }}
+              >
+                {c.label}
+              </span>
+            ))}
             <span className={`text-sm font-medium ${score > 0 ? "text-green-600" : score < 0 ? "text-red-600" : "text-gray-500"}`}>
               {score > 0 ? `+${score}` : score} votes
             </span>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -21,8 +22,23 @@ export async function GET(request: NextRequest, context: RouteContext) {
           select: {
             id: true,
             name: true,
+            username: true,
           },
         },
+        _count: {
+          select: {
+            comments: true,
+            favorites: true,
+            checkIns: true,
+            photos: true,
+          },
+        },
+        ...(userId ? {
+          favorites: {
+            where: { userId },
+            select: { id: true },
+          },
+        } : {}),
       },
     });
 
@@ -41,7 +57,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const isOwner = userId === location.userId;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { votes, ...locationWithoutVotes } = location;
+    const { votes, _count, favorites, ...locationWithoutVotes } = location as any;
 
     return NextResponse.json({
       ...locationWithoutVotes,
@@ -49,6 +65,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
       downvotes,
       userVote,
       isOwner,
+      commentCount: _count.comments,
+      favoriteCount: _count.favorites,
+      checkInCount: _count.checkIns,
+      photoCount: _count.photos,
+      isFavorited: Array.isArray(favorites) && favorites.length > 0,
     });
   } catch (error) {
     console.error("Error fetching location:", error);
@@ -73,11 +94,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const body = await request.json();
 
-    const { name, description, latitude, longitude, classification, imageUrl, region, associatedHobbyShopId } = body;
+    const { name, description, latitude, longitude, classifications, imageUrl, region, associatedHobbyShopId } = body;
 
-    if (classification && !["bash", "race", "crawl", "hobby", "airfield", "boat"].includes(classification)) {
+    const validClassifications = ["bash", "race", "crawl", "hobby", "airfield", "boat", "drone"];
+    if (classifications && (!Array.isArray(classifications) || classifications.length === 0 || !classifications.every((c: string) => validClassifications.includes(c)))) {
       return NextResponse.json(
-        { error: "Invalid classification" },
+        { error: "Invalid classifications" },
         { status: 400 }
       );
     }
@@ -108,7 +130,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         description: description !== undefined ? description : existingLocation.description,
         latitude: latitude ?? existingLocation.latitude,
         longitude: longitude ?? existingLocation.longitude,
-        classification: classification ?? existingLocation.classification,
+        classifications: classifications ?? existingLocation.classifications,
         imageUrl: imageUrl !== undefined ? imageUrl : existingLocation.imageUrl,
         region: region !== undefined ? region : existingLocation.region,
         associatedHobbyShopId: associatedHobbyShopId !== undefined ? (associatedHobbyShopId || null) : existingLocation.associatedHobbyShopId,
@@ -120,17 +142,30 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           select: {
             id: true,
             name: true,
+            username: true,
           },
+        },
+        _count: {
+          select: {
+            comments: true,
+            favorites: true,
+            checkIns: true,
+            photos: true,
+          },
+        },
+        favorites: {
+          where: { userId: session.user.id },
+          select: { id: true },
         },
       },
     });
 
-    const upvotes = location.votes.filter((v) => v.value === 1).length;
-    const downvotes = location.votes.filter((v) => v.value === -1).length;
-    const userVote = location.votes.find((v) => v.userId === session.user.id)?.value ?? null;
+    const upvotes = location.votes.filter((v: any) => v.value === 1).length;
+    const downvotes = location.votes.filter((v: any) => v.value === -1).length;
+    const userVote = location.votes.find((v: any) => v.userId === session.user.id)?.value ?? null;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { votes, ...locationWithoutVotes } = location;
+    const { votes, _count, favorites, ...locationWithoutVotes } = location as any;
 
     return NextResponse.json({
       ...locationWithoutVotes,
@@ -138,6 +173,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       downvotes,
       userVote,
       isOwner: true,
+      commentCount: _count.comments,
+      favoriteCount: _count.favorites,
+      checkInCount: _count.checkIns,
+      photoCount: _count.photos,
+      isFavorited: Array.isArray(favorites) && favorites.length > 0,
     });
   } catch (error) {
     console.error("Error updating location:", error);

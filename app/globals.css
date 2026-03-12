@@ -90,3 +90,75 @@ input, select, textarea {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Marker entrance animation */
+@keyframes marker-drop {
+  0% {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(4px);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.custom-marker {
+  animation: marker-drop 0.4s ease-out;
+}
+
+.new-marker {
+  animation: marker-drop 0.3s ease-out;
+}
+
+/* Marker cluster custom styles */
+.marker-cluster-small {
+  background-color: rgba(59, 130, 246, 0.3) !important;
+}
+.marker-cluster-small div {
+  background-color: rgba(59, 130, 246, 0.7) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+.marker-cluster-medium {
+  background-color: rgba(245, 158, 11, 0.3) !important;
+}
+.marker-cluster-medium div {
+  background-color: rgba(245, 158, 11, 0.7) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+.marker-cluster-large {
+  background-color: rgba(239, 68, 68, 0.3) !important;
+}
+.marker-cluster-large div {
+  background-color: rgba(239, 68, 68, 0.7) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Geolocation prompt bounce-in */
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px) scale(0.95);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(4px) scale(1.02);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.4s ease-out;
+}

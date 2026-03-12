@@ -6,6 +6,38 @@ import L from "leaflet";
 import { Location, Classification, REGION_COORDINATES } from "@/lib/types";
 import LocationMarker from "./LocationMarker";
 
+// Heatmap layer component using leaflet.heat
+function HeatmapLayer({ locations }: { locations: Location[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (locations.length === 0) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const heat = require("leaflet.heat");
+    void heat; // ensure import side-effect
+
+    const points: [number, number, number][] = locations.map((loc) => {
+      const score = Math.max(loc.upvotes - loc.downvotes, 0);
+      return [loc.latitude, loc.longitude, Math.min(score + 1, 10) / 10];
+    });
+
+    const heatLayer = (L as unknown as { heatLayer: (points: [number, number, number][], opts: Record<string, unknown>) => L.Layer }).heatLayer(points, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 12,
+      gradient: { 0.2: "#3b82f6", 0.5: "#22c55e", 0.8: "#f97316", 1.0: "#ef4444" },
+    });
+
+    heatLayer.addTo(map);
+    return () => {
+      map.removeLayer(heatLayer);
+    };
+  }, [locations, map]);
+
+  return null;
+}
+
 interface MapProps {
   locations: Location[];
   onMapClick: (lat: number, lng: number) => void;
@@ -18,6 +50,8 @@ interface MapProps {
   selectedRegion?: string;
   editingLocationId?: string;
   searchLocation?: { lat: number; lng: number } | null;
+  showHeatmap?: boolean;
+  autoZoomToDensest?: boolean;
 }
 
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
@@ -36,9 +70,24 @@ function FlyToLocation({ location }: { location: Location | null }) {
   useEffect(() => {
     if (location && location.id !== prevLocationRef.current) {
       prevLocationRef.current = location.id;
-      map.flyTo([location.latitude, location.longitude], 14, {
-        duration: 0.5,
-      });
+
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        // On mobile, offset so the marker + popup sit in the visible area
+        // between the search bar (~80px top) and the bottom sheet (~64px collapsed)
+        // We shift the center up so the popup appears below the search bar
+        const targetLatLng = L.latLng(location.latitude, location.longitude);
+        const targetPoint = map.project(targetLatLng, 14);
+        // Negative Y = map center shifts down on screen, pushing marker+popup down
+        // so the popup clears the search bar at the top
+        const offsetPoint = L.point(targetPoint.x, targetPoint.y - 150);
+        const offsetLatLng = map.unproject(offsetPoint, 14);
+        map.flyTo(offsetLatLng, 14, { duration: 0.5 });
+      } else {
+        map.flyTo([location.latitude, location.longitude], 14, {
+          duration: 0.5,
+        });
+      }
     } else if (!location) {
       prevLocationRef.current = null;
     }
@@ -124,6 +173,55 @@ function FlyToSearchLocation({ location }: { location?: { lat: number; lng: numb
   return null;
 }
 
+function FlyToDensestArea({ locations }: { locations: Location[] }) {
+  const map = useMap();
+  const hasFired = useRef(false);
+
+  useEffect(() => {
+    if (hasFired.current || locations.length === 0) return;
+    hasFired.current = true;
+
+    // Grid-based density: divide into cells and find the densest one
+    const gridSize = 2; // degrees per cell
+    const cells: Record<string, { lats: number[]; lngs: number[] }> = {};
+
+    for (const loc of locations) {
+      const cellKey = `${Math.floor(loc.latitude / gridSize)},${Math.floor(loc.longitude / gridSize)}`;
+      if (!cells[cellKey]) {
+        cells[cellKey] = { lats: [], lngs: [] };
+      }
+      const cell = cells[cellKey];
+      cell.lats.push(loc.latitude);
+      cell.lngs.push(loc.longitude);
+    }
+
+    // Find the cell with the most spots
+    let bestCell: { lats: number[]; lngs: number[] } | null = null;
+    let bestCount = 0;
+    for (const cell of Object.values(cells)) {
+      if (cell.lats.length > bestCount) {
+        bestCount = cell.lats.length;
+        bestCell = cell;
+      }
+    }
+
+    if (bestCell && bestCount > 1) {
+      const avgLat = bestCell.lats.reduce((a, b) => a + b, 0) / bestCell.lats.length;
+      const avgLng = bestCell.lngs.reduce((a, b) => a + b, 0) / bestCell.lngs.length;
+
+      // Pick zoom based on spread within the cluster
+      const latSpread = Math.max(...bestCell.lats) - Math.min(...bestCell.lats);
+      const lngSpread = Math.max(...bestCell.lngs) - Math.min(...bestCell.lngs);
+      const spread = Math.max(latSpread, lngSpread);
+      const zoom = spread < 0.5 ? 10 : spread < 1 ? 8 : spread < 2 ? 7 : 6;
+
+      map.flyTo([avgLat, avgLng], zoom, { duration: 1 });
+    }
+  }, [locations, map]);
+
+  return null;
+}
+
 function MapResizer() {
   const map = useMap();
 
@@ -174,21 +272,40 @@ function MapResizer() {
   return null;
 }
 
-function getMarkerIcon(classification: Classification): L.DivIcon {
-  const colors: Record<Classification, string> = {
-    bash: "#ef4444",
-    race: "#3b82f6",
-    crawl: "#22c55e",
-    hobby: "#f97316",
-    airfield: "#8b5cf6",
-    boat: "#06b6d4",
-  };
+const CLASSIFICATION_COLORS: Record<Classification, string> = {
+  bash: "#ef4444",
+  race: "#3b82f6",
+  crawl: "#22c55e",
+  hobby: "#f97316",
+  airfield: "#8b5cf6",
+  boat: "#06b6d4",
+  drone: "#ec4899",
+};
 
-  const color = colors[classification];
+function getMarkerIcon(classifications: Classification[]): L.DivIcon {
+  const colors = classifications.map((c) => CLASSIFICATION_COLORS[c]);
+  const clipId = `pin-${classifications.join("-")}`;
+
+  let fill: string;
+  if (colors.length === 1) {
+    fill = `<path fill="${colors[0]}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>`;
+  } else {
+    // Multi-color: vertical stripes clipped to pin shape
+    const stripeWidth = 19 / colors.length; // pin spans x=5 to x=19
+    const stripes = colors
+      .map((color, i) => `<rect x="${5 + i * stripeWidth}" y="0" width="${stripeWidth + 0.5}" height="24" fill="${color}"/>`)
+      .join("");
+    fill = `
+      <defs><clipPath id="${clipId}"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></clipPath></defs>
+      <g clip-path="url(#${clipId})">${stripes}</g>
+      <path fill="none" stroke="#fff" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+    `;
+  }
 
   const svgIcon = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
-      <path fill="${color}" stroke="#fff" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+      ${fill}
+      ${colors.length === 1 ? '<path fill="none" stroke="#fff" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>' : ''}
       <circle fill="#fff" cx="12" cy="9" r="2.5"/>
     </svg>
   `;
@@ -264,8 +381,12 @@ function MapContent({
   selectedRegion,
   editingLocationId,
   searchLocation,
+  showHeatmap,
+  autoZoomToDensest,
   mapType,
 }: MapProps & { mapType: MapType }) {
+  const visibleLocations = locations.filter((location) => location.id !== editingLocationId);
+
   return (
     <>
       {mapType === "map" ? (
@@ -299,14 +420,14 @@ function MapContent({
       <ResetMapView resetView={resetView} />
       <FlyToRegion region={selectedRegion} />
       <FlyToSearchLocation location={searchLocation} />
+      {autoZoomToDensest && <FlyToDensestArea locations={locations} />}
       <MapResizer />
-      {locations
-        .filter((location) => location.id !== editingLocationId)
-        .map((location) => (
+      {showHeatmap && <HeatmapLayer locations={visibleLocations} />}
+      {visibleLocations.map((location) => (
         <LocationMarker
           key={location.id}
           location={location}
-          icon={getMarkerIcon(location.classification as Classification)}
+          icon={getMarkerIcon(location.classifications as Classification[])}
           onClick={() => onMarkerClick(location)}
           onViewDetails={() => onViewDetails(location)}
           isSelected={selectedLocation?.id === location.id}
@@ -325,6 +446,7 @@ function MapContent({
 export default function Map(props: MapProps) {
   const [isClient, setIsClient] = useState(false);
   const [mapType, setMapType] = useState<MapType>("map");
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -332,6 +454,10 @@ export default function Map(props: MapProps) {
 
   const handleMapTypeToggle = useCallback(() => {
     setMapType((prev) => (prev === "map" ? "satellite" : "map"));
+  }, []);
+
+  const handleHeatmapToggle = useCallback(() => {
+    setShowHeatmap((prev) => !prev);
   }, []);
 
   if (!isClient) {
@@ -353,11 +479,11 @@ export default function Map(props: MapProps) {
         className="w-full h-full"
         zoomControl={false}
       >
-        <MapContent {...props} mapType={mapType} />
+        <MapContent {...props} showHeatmap={showHeatmap} mapType={mapType} />
       </MapContainer>
 
-      {/* Map/Satellite Toggle - positioned above bottom sheet on mobile */}
-      <div className="absolute bottom-20 md:bottom-6 left-4 z-[1000]">
+      {/* Map controls - positioned above bottom sheet on mobile */}
+      <div className="absolute bottom-20 md:bottom-6 left-4 z-[1000] flex gap-2">
         <button
           onClick={handleMapTypeToggle}
           className="bg-white px-3 py-2 md:px-4 md:py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center gap-2 rounded-lg shadow-lg border border-gray-300"
@@ -378,6 +504,21 @@ export default function Map(props: MapProps) {
               Map
             </>
           )}
+        </button>
+        <button
+          onClick={handleHeatmapToggle}
+          className={`px-3 py-2 md:px-4 md:py-2.5 text-sm font-medium flex items-center gap-2 rounded-lg shadow-lg border transition-colors ${
+            showHeatmap
+              ? "bg-orange-500 text-white border-orange-500"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+          }`}
+          title={showHeatmap ? "Hide heatmap" : "Show heatmap"}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+          </svg>
+          <span className="hidden md:inline">Heat</span>
         </button>
       </div>
     </div>

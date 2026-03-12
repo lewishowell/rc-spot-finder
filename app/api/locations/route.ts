@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getRegionFromCoordinates } from "@/lib/geocode";
+import { notifyFriends } from "@/lib/notifications";
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     const where: Record<string, unknown> = {};
 
     if (classification && classification !== "all") {
-      where.classification = classification;
+      where.classifications = { has: classification };
     }
 
     if (region && region !== "all") {
@@ -30,10 +31,16 @@ export async function GET(request: NextRequest) {
       where.userId = userId;
     }
 
+    const myFavorites = searchParams.get("myFavorites") === "true";
+
+    if (myFavorites && userId) {
+      where.favorites = { some: { userId } };
+    }
+
     const locations = await prisma.location.findMany({
       where,
-      orderBy: sortBy === "votes"
-        ? undefined // We'll sort in memory for votes
+      orderBy: sortBy === "votes" || sortBy === "distance"
+        ? undefined // We'll sort in memory
         : { [sortBy]: sortOrder },
       include: {
         associatedHobbyShop: true,
@@ -42,8 +49,23 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
+            username: true,
           },
         },
+        _count: {
+          select: {
+            comments: true,
+            favorites: true,
+            checkIns: true,
+            photos: true,
+          },
+        },
+        ...(userId ? {
+          favorites: {
+            where: { userId },
+            select: { id: true },
+          },
+        } : {}),
       },
     });
 
@@ -57,7 +79,7 @@ export async function GET(request: NextRequest) {
       const isOwner = userId === loc.userId;
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { votes, ...locationWithoutVotes } = loc;
+      const { votes, _count, favorites, ...locationWithoutVotes } = loc as typeof loc & { favorites?: { id: string }[] };
 
       return {
         ...locationWithoutVotes,
@@ -65,6 +87,11 @@ export async function GET(request: NextRequest) {
         downvotes,
         userVote,
         isOwner,
+        commentCount: _count.comments,
+        favoriteCount: _count.favorites,
+        checkInCount: _count.checkIns,
+        photoCount: _count.photos,
+        isFavorited: Array.isArray(favorites) && favorites.length > 0,
       };
     });
 
@@ -99,18 +126,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, latitude, longitude, classification, imageUrl, region, associatedHobbyShopId } = body;
+    const { name, description, latitude, longitude, classifications, imageUrl, region, associatedHobbyShopId } = body;
 
-    if (!name || latitude === undefined || longitude === undefined || !classification) {
+    if (!name || latitude === undefined || longitude === undefined || !classifications) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    if (!["bash", "race", "crawl", "hobby", "airfield", "boat"].includes(classification)) {
+    const validClassifications = ["bash", "race", "crawl", "hobby", "airfield", "boat", "drone"];
+    if (!Array.isArray(classifications) || classifications.length === 0 || !classifications.every((c: string) => validClassifications.includes(c))) {
       return NextResponse.json(
-        { error: "Invalid classification" },
+        { error: "Invalid classifications" },
         { status: 400 }
       );
     }
@@ -127,7 +155,7 @@ export async function POST(request: NextRequest) {
         description: description || null,
         latitude,
         longitude,
-        classification,
+        classifications,
         imageUrl: imageUrl || null,
         region: finalRegion,
         associatedHobbyShopId: associatedHobbyShopId || null,
@@ -139,10 +167,22 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             name: true,
+            username: true,
           },
         },
       },
     });
+
+    // Notify friends (fire and forget)
+    const actorName = location.user?.username
+      ? `@${location.user.username}`
+      : location.user?.name || "Someone";
+    notifyFriends(
+      session.user.id,
+      "friend_new_spot",
+      `${actorName} added a new spot: ${name}`,
+      location.id
+    );
 
     return NextResponse.json({
       ...location,
@@ -150,6 +190,11 @@ export async function POST(request: NextRequest) {
       downvotes: 0,
       userVote: null,
       isOwner: true,
+      commentCount: 0,
+      favoriteCount: 0,
+      checkInCount: 0,
+      photoCount: 0,
+      isFavorited: false,
     }, { status: 201 });
   } catch (error) {
     console.error("Error creating location:", error);

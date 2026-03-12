@@ -1,4 +1,4 @@
-export type Classification = "bash" | "race" | "crawl" | "hobby" | "airfield" | "boat";
+export type Classification = "bash" | "race" | "crawl" | "hobby" | "airfield" | "boat" | "drone";
 
 export interface Spot {
   id: string;
@@ -6,7 +6,7 @@ export interface Spot {
   description: string | null;
   latitude: number;
   longitude: number;
-  classification: Classification;
+  classifications: Classification[];
   imageUrl: string | null;
   region: string | null;
   createdAt: Date;
@@ -17,11 +17,17 @@ export interface Spot {
   user?: {
     id: string;
     name: string | null;
+    username: string | null;
   };
   upvotes: number;
   downvotes: number;
   userVote: number | null;
   isOwner: boolean;
+  commentCount: number;
+  favoriteCount: number;
+  checkInCount: number;
+  photoCount: number;
+  isFavorited: boolean;
 }
 
 // Re-export as Location for component compatibility
@@ -32,7 +38,7 @@ export interface LocationFormData {
   description?: string;
   latitude: number;
   longitude: number;
-  classification: Classification;
+  classifications: Classification[];
   imageUrl?: string;
   region?: string;
   associatedHobbyShopId?: string;
@@ -41,9 +47,10 @@ export interface LocationFormData {
 export interface FilterOptions {
   classification?: Classification | "all";
   region?: string;
-  sortBy?: "name" | "votes" | "createdAt";
+  sortBy?: "name" | "votes" | "createdAt" | "distance";
   sortOrder?: "asc" | "desc";
   mySpots?: boolean;
+  myFavorites?: boolean;
 }
 
 export const CLASSIFICATIONS: { value: Classification; label: string; color: string }[] = [
@@ -53,6 +60,7 @@ export const CLASSIFICATIONS: { value: Classification; label: string; color: str
   { value: "hobby", label: "Hobby Shop", color: "#f97316" },
   { value: "airfield", label: "Air Field", color: "#8b5cf6" },
   { value: "boat", label: "Boat Spot", color: "#06b6d4" },
+  { value: "drone", label: "Drone / UAV", color: "#ec4899" },
 ];
 
 export const REGIONS = [

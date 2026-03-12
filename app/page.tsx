@@ -11,6 +11,18 @@ import LocationForm from "@/components/LocationForm";
 import LocationCard from "@/components/LocationCard";
 import SearchBox from "@/components/SearchBox";
 import AuthButton from "@/components/AuthButton";
+import WelcomeOverlay from "@/components/WelcomeOverlay";
+import FeaturedSpots from "@/components/FeaturedSpots";
+import StatsBanner from "@/components/StatsBanner";
+import FeatureRequestModal from "@/components/FeatureRequestModal";
+import FriendsList from "@/components/FriendsList";
+import ProfileSettings from "@/components/ProfileSettings";
+import RigGarage from "@/components/RigGarage";
+import RigDetail from "@/components/RigDetail";
+import RigForm from "@/components/RigForm";
+import ModForm from "@/components/ModForm";
+import UserProfilePanel from "@/components/UserProfilePanel";
+import NotificationPanel from "@/components/NotificationPanel";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -44,6 +56,18 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchTerms, setSearchTerms] = useState<string[]>([]);
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [showGeolocationPrompt, setShowGeolocationPrompt] = useState(false);
+  const [showFeatureRequest, setShowFeatureRequest] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
+  const [showGarage, setShowGarage] = useState(false);
+  const [showRigDetail, setShowRigDetail] = useState<string | null>(null);
+  const [rigDetailBackTo, setRigDetailBackTo] = useState<{ type: "profile"; userId: string } | { type: "garage" } | null>(null);
+  const [showRigForm, setShowRigForm] = useState<string | null | false>(false); // false=closed, null=new, string=edit
+  const [showModForm, setShowModForm] = useState<{ rigId: string; modId?: string } | null>(null);
+  const [showUserProfile, setShowUserProfile] = useState<string | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Touch handling for bottom sheet swipe
   const touchStartY = useRef<number>(0);
@@ -87,6 +111,9 @@ export default function Home() {
       }
       if (filters.mySpots) {
         params.set("mySpots", "true");
+      }
+      if (filters.myFavorites) {
+        params.set("myFavorites", "true");
       }
 
       const response = await fetch(`/api/locations?${params.toString()}`);
@@ -232,20 +259,132 @@ export default function Home() {
     setIsBottomSheetExpanded(true);
   }, []);
 
+  const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Request user location when "Near Me" sort is selected
+  useEffect(() => {
+    if (filters.sortBy === "distance" && !userPosition && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {} // silently fail
+      );
+    }
+  }, [filters.sortBy, userPosition]);
+
   // Filter locations by search terms (name/description matching)
   const filteredLocations: Spot[] = useMemo(() => {
-    if (searchTerms.length === 0) {
-      return locations;
+    let result = searchTerms.length === 0
+      ? locations
+      : locations.filter((loc) => matchesSearch(loc, searchTerms));
+
+    // Client-side distance sort using Haversine formula
+    if (filters.sortBy === "distance" && userPosition) {
+      const toRad = (deg: number) => (deg * Math.PI) / 180;
+      const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 3959; // miles
+      };
+      result = [...result].sort((a, b) => {
+        const distA = haversine(userPosition.lat, userPosition.lng, a.latitude, a.longitude);
+        const distB = haversine(userPosition.lat, userPosition.lng, b.latitude, b.longitude);
+        return distA - distB;
+      });
     }
-    return locations.filter((loc) => matchesSearch(loc, searchTerms));
-  }, [locations, searchTerms]);
+
+    return result;
+  }, [locations, searchTerms, filters.sortBy, userPosition]);
 
   // Extract hobby shops for the form dropdown
   const hobbyShops = useMemo(() => {
     return locations
-      .filter((loc) => loc.classification === "hobby")
+      .filter((loc) => loc.classifications.includes("hobby"))
       .map((loc) => ({ id: loc.id, name: loc.name }));
   }, [locations]);
+
+  // Computed values for landing page components
+  const totalRegions = useMemo(() => {
+    const regions = new Set(locations.map((loc) => loc.region).filter(Boolean));
+    return regions.size;
+  }, [locations]);
+
+  const newestSpotName = useMemo(() => {
+    if (locations.length === 0) return null;
+    const sorted = [...locations].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    return sorted[0]?.name ?? null;
+  }, [locations]);
+
+  const newestSpot = useMemo(() => {
+    if (locations.length === 0) return null;
+    const sorted = [...locations].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    return sorted[0];
+  }, [locations]);
+
+  // Show geolocation prompt after welcome overlay is dismissed (for first-time visitors)
+  useEffect(() => {
+    if (!showWelcome && !defaultRegion && !session?.user && "geolocation" in navigator) {
+      const prompted = localStorage.getItem("geoPrompted");
+      if (!prompted) {
+        setShowGeolocationPrompt(true);
+      }
+    }
+  }, [showWelcome, defaultRegion, session?.user]);
+
+  const handleGeolocation = useCallback(() => {
+    localStorage.setItem("geoPrompted", "true");
+    setShowGeolocationPrompt(false);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setSearchLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+      },
+      () => {
+        // User denied or error - just dismiss
+      }
+    );
+  }, []);
+
+  const handleDismissGeolocation = useCallback(() => {
+    localStorage.setItem("geoPrompted", "true");
+    setShowGeolocationPrompt(false);
+  }, []);
+
+  const handleWelcomeDismiss = useCallback(() => {
+    setShowWelcome(false);
+  }, []);
+
+  const handleWelcomeRegionSelect = useCallback((region: string) => {
+    setShowWelcome(false);
+    setFilters((prev) => ({ ...prev, region }));
+  }, []);
+
+  const handleFeaturedSpotClick = useCallback((spot: Spot) => {
+    setSelectedLocation(spot);
+    setIsBottomSheetExpanded(true);
+    setIsSidebarOpen(true);
+  }, []);
+
+  const handleFavoriteChange = useCallback((locationId: string, isFavorited: boolean, favoriteCount: number) => {
+    setLocations((prev) =>
+      prev.map((loc) =>
+        loc.id === locationId ? { ...loc, isFavorited, favoriteCount } : loc
+      )
+    );
+    if (selectedLocation?.id === locationId) {
+      setSelectedLocation((prev) =>
+        prev ? { ...prev, isFavorited, favoriteCount } : null
+      );
+    }
+  }, [selectedLocation?.id]);
+
+  const handleViewRigFromCard = useCallback((rigId: string) => {
+    setRigDetailBackTo(null);
+    setShowRigDetail(rigId);
+  }, []);
 
   const handleVoteChange = useCallback((locationId: string, upvotes: number, downvotes: number, userVote: number | null) => {
     setLocations((prev) =>
@@ -280,6 +419,7 @@ export default function Home() {
     setShowForm(true);
     setSelectedLocation(null);
     setIsBottomSheetExpanded(true);
+    setIsSidebarOpen(true); // Open sidebar on desktop
   };
 
   const handleNewMarkerDrag = (lat: number, lng: number) => {
@@ -291,15 +431,20 @@ export default function Home() {
     setSelectedLocation(location);
     setShowForm(false);
     setNewMarkerPosition(null);
+    setIsSidebarOpen(true); // Open sidebar on desktop
     // Don't auto-expand bottom sheet on mobile - let user see the popup first
   };
 
   const handleViewDetails = (location: Spot) => {
-    setSelectedLocation(location);
-    setShowForm(false);
-    setNewMarkerPosition(null);
-    setIsBottomSheetExpanded(true); // Expand bottom sheet on mobile
-    setIsSidebarOpen(true); // Open sidebar on desktop
+    // Briefly deselect to close the map popup, then reselect
+    setSelectedLocation(null);
+    setTimeout(() => {
+      setSelectedLocation(location);
+      setShowForm(false);
+      setNewMarkerPosition(null);
+      setIsBottomSheetExpanded(true); // Expand bottom sheet on mobile
+      setIsSidebarOpen(true); // Open sidebar on desktop
+    }, 50);
   };
 
   const handleHobbyShopClick = useCallback((hobbyShop: Spot) => {
@@ -327,7 +472,7 @@ export default function Home() {
       description: location.description || "",
       latitude: location.latitude,
       longitude: location.longitude,
-      classification: location.classification as LocationFormData["classification"],
+      classifications: location.classifications as LocationFormData["classifications"],
       imageUrl: location.imageUrl || "",
       region: location.region || "",
       associatedHobbyShopId: location.associatedHobbyShopId || "",
@@ -415,6 +560,46 @@ export default function Home() {
 
   return (
     <div className="h-full w-full flex flex-col md:flex-row overflow-hidden">
+      {/* Welcome Overlay - first visit only */}
+      {showWelcome && (
+        <WelcomeOverlay
+          onDismiss={handleWelcomeDismiss}
+          onRegionSelect={handleWelcomeRegionSelect}
+        />
+      )}
+
+      {/* Geolocation prompt */}
+      {showGeolocationPrompt && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[1500] bg-white rounded-xl shadow-2xl border border-gray-200 p-4 max-w-sm mx-4 animate-bounce-in">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-gray-900 text-sm">Explore spots near you?</p>
+              <p className="text-xs text-gray-500 mt-0.5">We&apos;ll zoom to your area to show nearby RC spots.</p>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={handleGeolocation}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Sure!
+                </button>
+                <button
+                  onClick={handleDismissGeolocation}
+                  className="px-3 py-1.5 text-gray-500 text-xs font-medium hover:text-gray-700 transition-colors"
+                >
+                  No thanks
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Map Container */}
       <div className="flex-1 relative">
         <Map
@@ -429,6 +614,7 @@ export default function Home() {
           selectedRegion={filters.region}
           editingLocationId={showForm && formMode === "edit" ? selectedLocation?.id : undefined}
           searchLocation={searchLocation}
+          autoZoomToDensest={!filters.region && !selectedLocation}
         />
 
         {/* Desktop sidebar toggle - stays inside map container */}
@@ -459,7 +645,12 @@ export default function Home() {
           </div>
           <div className="flex gap-2 items-start">
             <div className="flex-shrink-0">
-              <AuthButton />
+              <AuthButton
+                onOpenFriends={() => setShowFriends(true)}
+                onOpenProfile={() => setShowProfileSettings(true)}
+                onOpenGarage={() => setShowGarage(true)}
+                onOpenNotifications={() => setShowNotifications(true)}
+              />
             </div>
             <div className="flex-1">
               <SearchBox
@@ -469,6 +660,20 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Feature request button (mobile, logged in only) */}
+        {session && (
+          <button
+            onClick={() => setShowFeatureRequest(true)}
+            className="absolute right-4 w-10 h-10 bg-white text-gray-600 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors pointer-events-auto border border-gray-200"
+            style={{ bottom: "calc(10rem + env(safe-area-inset-bottom, 0px))" }}
+            title="Request a feature"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </button>
+        )}
 
         {/* Add button */}
         <button
@@ -482,14 +687,29 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Desktop search box and auth - separate from mobile */}
+      {/* Desktop search box, auth, and stats - separate from mobile */}
       <div className="hidden md:flex absolute top-4 left-4 gap-3 items-start z-[1000]">
-        <AuthButton />
-        <div className="w-96">
-          <SearchBox
-            onSearch={handleSearch}
-            placeholder="Try: 'bash spots in California' or 'top voted tracks'"
-          />
+        <AuthButton
+                onOpenFriends={() => setShowFriends(true)}
+                onOpenProfile={() => setShowProfileSettings(true)}
+                onOpenGarage={() => setShowGarage(true)}
+                onOpenNotifications={() => setShowNotifications(true)}
+              />
+        <div className="flex flex-col gap-2">
+          <div className="w-96">
+            <SearchBox
+              onSearch={handleSearch}
+              placeholder="Try: 'bash spots in California' or 'top voted tracks'"
+            />
+          </div>
+          {!isLoading && locations.length > 0 && (
+            <StatsBanner
+              totalSpots={locations.length}
+              totalRegions={totalRegions}
+              newestSpotName={newestSpotName}
+              onNewestSpotClick={newestSpot ? () => handleFeaturedSpotClick(newestSpot) : undefined}
+            />
+          )}
         </div>
       </div>
 
@@ -502,12 +722,25 @@ export default function Home() {
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <img src="/logo.svg" alt="RC Spot Finder" className="h-10" />
-            <button
-              onClick={handleAddNew}
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Add Spot
-            </button>
+            <div className="flex items-center gap-2">
+              {session && (
+                <button
+                  onClick={() => setShowFeatureRequest(true)}
+                  className="px-3 py-2 text-gray-500 hover:text-gray-700 text-sm transition-colors"
+                  title="Request a feature"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </button>
+              )}
+              <button
+                onClick={handleAddNew}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Add Spot
+              </button>
+            </div>
           </div>
           <FilterPanel
             filters={filters}
@@ -549,6 +782,9 @@ export default function Home() {
               onDelete={() => handleDelete(selectedLocation)}
               onVoteChange={handleVoteChange}
               onHobbyShopClick={handleHobbyShopClick}
+              onViewProfile={(userId) => setShowUserProfile(userId)}
+              onViewRig={handleViewRigFromCard}
+              onFavoriteChange={handleFavoriteChange}
               isSelected
             />
           ) : (
@@ -558,6 +794,21 @@ export default function Home() {
                   ? "Loading spots..."
                   : `${filteredLocations.length} spot${filteredLocations.length !== 1 ? "s" : ""} found${searchQuery ? ` for "${searchQuery}"` : ""}. Click the map to add a new spot.`}
               </p>
+              {newestSpot && !searchQuery && (
+                <div className="rounded-lg border-2 border-blue-400 bg-blue-50/50 p-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 mb-1 block">Just Added</span>
+                  <LocationCard
+                    location={newestSpot}
+                    onClick={() => handleFeaturedSpotClick(newestSpot)}
+                    onVoteChange={handleVoteChange}
+                    onHobbyShopClick={handleHobbyShopClick}
+                    onViewProfile={(userId) => setShowUserProfile(userId)}
+                    onViewRig={handleViewRigFromCard}
+                    onFavoriteChange={handleFavoriteChange}
+                    isSelected={false}
+                  />
+                </div>
+              )}
               <div className="space-y-2">
                 {filteredLocations.map((loc) => (
                   <LocationCard
@@ -565,6 +816,8 @@ export default function Home() {
                     location={loc}
                     onClick={() => handleMarkerClick(loc)}
                     onVoteChange={handleVoteChange}
+                    onViewProfile={(userId) => setShowUserProfile(userId)}
+                    onFavoriteChange={handleFavoriteChange}
                     isSelected={false}
                     compact
                   />
@@ -575,10 +828,17 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Mobile Featured Spots - shown for logged-out users only */}
+      {!session && !isBottomSheetExpanded && !selectedLocation && !showForm && locations.length > 0 && (
+        <div className="md:hidden fixed bottom-16 left-0 right-0 z-[1001]" style={{ transform: "translateZ(0)" }}>
+          <FeaturedSpots spots={locations} onSpotClick={handleFeaturedSpotClick} />
+        </div>
+      )}
+
       {/* Mobile Bottom Sheet */}
       <div
         className={`md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)] ${
-          isBottomSheetExpanded ? "h-[70vh]" : "h-16"
+          isBottomSheetExpanded ? "h-[calc(100vh-80px)]" : "h-16"
         }`}
         style={{
           transform: "translateZ(0)",
@@ -603,7 +863,7 @@ export default function Home() {
 
         {/* Content */}
         {isBottomSheetExpanded && (
-          <div className="flex-1 overflow-y-auto px-4 pb-4 max-h-[calc(70vh-60px)]">
+          <div className="flex-1 overflow-y-auto px-4 pb-4 max-h-[calc(100vh-140px)]">
             {(showForm || selectedLocation) && (
               <button
                 onClick={handleBackToList}
@@ -633,6 +893,9 @@ export default function Home() {
                 onDelete={() => handleDelete(selectedLocation)}
                 onVoteChange={handleVoteChange}
                 onHobbyShopClick={handleHobbyShopClick}
+                onViewProfile={(userId) => setShowUserProfile(userId)}
+                onViewRig={handleViewRigFromCard}
+                onFavoriteChange={handleFavoriteChange}
                 isSelected
               />
             ) : (
@@ -645,6 +908,21 @@ export default function Home() {
                   defaultRegion={defaultRegion}
                   onSetDefaultRegion={handleSetDefaultRegion}
                 />
+                {newestSpot && !searchQuery && (
+                  <div className="rounded-lg border-2 border-blue-400 bg-blue-50/50 p-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 mb-1 block">Just Added</span>
+                    <LocationCard
+                      location={newestSpot}
+                      onClick={() => handleFeaturedSpotClick(newestSpot)}
+                      onVoteChange={handleVoteChange}
+                      onHobbyShopClick={handleHobbyShopClick}
+                      onViewProfile={(userId) => setShowUserProfile(userId)}
+                      onViewRig={handleViewRigFromCard}
+                      onFavoriteChange={handleFavoriteChange}
+                      isSelected={false}
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   {filteredLocations.map((loc) => (
                     <LocationCard
@@ -652,6 +930,8 @@ export default function Home() {
                       location={loc}
                       onClick={() => handleMarkerClick(loc)}
                       onVoteChange={handleVoteChange}
+                      onViewProfile={(userId) => setShowUserProfile(userId)}
+                      onFavoriteChange={handleFavoriteChange}
                       isSelected={false}
                       compact
                     />
@@ -662,6 +942,153 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Feature Request Modal */}
+      {showFeatureRequest && (
+        <FeatureRequestModal onClose={() => setShowFeatureRequest(false)} />
+      )}
+
+      {/* Friends Panel */}
+      {showFriends && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowFriends(false)} />
+          <div className="relative z-10 mx-4 max-h-[80vh]">
+            <FriendsList
+              onClose={() => setShowFriends(false)}
+              onViewProfile={(userId) => { setShowFriends(false); setShowUserProfile(userId); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Notifications Panel */}
+      {showNotifications && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowNotifications(false)} />
+          <div className="relative z-10 mx-4 max-h-[80vh]">
+            <NotificationPanel
+              onClose={() => setShowNotifications(false)}
+              onViewSpot={(spotId) => {
+                setShowNotifications(false);
+                const spot = locations.find((l) => l.id === spotId);
+                if (spot) {
+                  setSelectedLocation(spot);
+                  setIsBottomSheetExpanded(true);
+                  setIsSidebarOpen(true);
+                }
+              }}
+              onViewRig={(rigId) => {
+                setShowNotifications(false);
+                setRigDetailBackTo(null);
+                setShowRigDetail(rigId);
+              }}
+              onViewProfile={(userId) => {
+                setShowNotifications(false);
+                setShowUserProfile(userId);
+              }}
+              onViewFriends={() => {
+                setShowNotifications(false);
+                setShowFriends(true);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Profile Settings Modal */}
+      {showProfileSettings && (
+        <ProfileSettings onClose={() => setShowProfileSettings(false)} />
+      )}
+
+      {/* User Profile Panel */}
+      {showUserProfile && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUserProfile(null)} />
+          <div className="relative z-10 mx-4 max-h-[80vh]">
+            <UserProfilePanel
+              userId={showUserProfile}
+              onClose={() => setShowUserProfile(null)}
+              onViewRig={(rigId) => { setRigDetailBackTo({ type: "profile", userId: showUserProfile }); setShowUserProfile(null); setShowRigDetail(rigId); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Garage Panel */}
+      {showGarage && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowGarage(false)} />
+          <div className="relative z-10 w-full max-w-lg mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">My Garage</h2>
+              <button onClick={() => setShowGarage(false)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <RigGarage
+              isOwner
+              onRigClick={(rigId) => { setRigDetailBackTo({ type: "garage" }); setShowGarage(false); setShowRigDetail(rigId); }}
+              onAddRig={() => { setShowGarage(false); setShowRigForm(null); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Rig Detail */}
+      {showRigDetail && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowRigDetail(null)} />
+          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto p-6">
+            <RigDetail
+              rigId={showRigDetail}
+              onClose={() => {
+                const backTo = rigDetailBackTo;
+                setShowRigDetail(null);
+                setRigDetailBackTo(null);
+                if (backTo?.type === "profile") {
+                  setShowUserProfile(backTo.userId);
+                } else if (backTo?.type === "garage") {
+                  setShowGarage(true);
+                }
+              }}
+              onEdit={() => { setShowRigForm(showRigDetail); setShowRigDetail(null); }}
+              onAddMod={() => { setShowModForm({ rigId: showRigDetail }); }}
+              onEditMod={(modId) => { setShowModForm({ rigId: showRigDetail, modId }); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Rig Form (add/edit) */}
+      {showRigForm !== false && (
+        <div className="fixed inset-0 z-[2100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowRigForm(false)} />
+          <div className="relative z-10 w-full max-w-md mx-4 max-h-[80vh] bg-white rounded-xl shadow-2xl overflow-y-auto p-6">
+            <RigForm
+              rigId={showRigForm || undefined}
+              onClose={() => setShowRigForm(false)}
+              onSaved={() => { setShowRigForm(false); setShowGarage(true); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Mod Form (add/edit) */}
+      {showModForm && (
+        <div className="fixed inset-0 z-[2200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowModForm(null)} />
+          <div className="relative z-10 w-full max-w-sm mx-4 bg-white rounded-xl shadow-2xl overflow-y-auto p-6">
+            <ModForm
+              rigId={showModForm.rigId}
+              modId={showModForm.modId}
+              onClose={() => setShowModForm(null)}
+              onSaved={() => { setShowModForm(null); }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

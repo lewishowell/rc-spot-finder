@@ -9,19 +9,32 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  defaultRegion String?   // User's preferred default map region
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  name              String?
+  email             String?   @unique
+  emailVerified     DateTime?
+  image             String?
+  defaultRegion     String?   // User's preferred default map region
+  username          String?   @unique
+  bio               String?
+  instagram         String?
+  profileVisibility String    @default("public") // "public" | "friends" | "private"
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  locations     Location[]
-  votes         Vote[]
+  accounts               Account[]
+  sessions               Session[]
+  locations              Location[]
+  votes                  Vote[]
+  rigs                   Rig[]
+  sentFriendRequests     Friendship[] @relation("SentFriendRequests")
+  receivedFriendRequests Friendship[] @relation("ReceivedFriendRequests")
+  notifications          Notification[] @relation("UserNotifications")
+  actedNotifications     Notification[] @relation("NotificationActor")
+  comments               Comment[]
+  favorites              Favorite[]
+  checkIns               CheckIn[]
+  spotPhotos             SpotPhoto[]
 }
 
 model Account {
@@ -63,7 +76,7 @@ model Location {
   description    String?
   latitude       Float
   longitude      Float
-  classification String   // "bash" | "race" | "crawl" | "hobby" | "airfield"
+  classifications String[] // e.g. ["bash", "crawl"]
   imageUrl       String?
   region         String?  // e.g., "Northeast", "California"
   createdAt      DateTime @default(now())
@@ -80,6 +93,12 @@ model Location {
 
   // Voting
   votes Vote[]
+
+  // Social
+  comments   Comment[]
+  favorites  Favorite[]
+  checkIns   CheckIn[]
+  photos     SpotPhoto[]
 
   @@index([userId])
 }
@@ -98,4 +117,135 @@ model Vote {
 
   @@unique([userId, locationId])  // One vote per user per location
   @@index([locationId])
+}
+
+model Friendship {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     String   @default("pending") // "pending" | "accepted" | "rejected"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender   User @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId, status])
+  @@index([senderId, status])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "friend_new_spot" | "friend_new_rig" | "friend_accepted"
+  message   String
+  linkId    String?  // ID of the related spot or rig
+  actorId   String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user  User  @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, read, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Rig {
+  id           String   @id @default(cuid())
+  userId       String
+  manufacturer String
+  model        String
+  nickname     String?
+  imageUrl     String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  modifications Modification[]
+  checkIns      CheckIn[]
+
+  @@index([userId])
+}
+
+model Modification {
+  id        String   @id @default(cuid())
+  rigId     String
+  category  String   // "Motor", "ESC", "Battery", "Servo", "Chassis", "Suspension", "Tires", "Body", "Drivetrain", "Electronics", "Other"
+  brand     String
+  name      String
+  notes     String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  rig Rig @relation(fields: [rigId], references: [id], onDelete: Cascade)
+
+  @@index([rigId])
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  text       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([locationId, createdAt])
+  @@index([userId])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, locationId])
+  @@index([userId])
+}
+
+model CheckIn {
+  id         String   @id @default(cuid())
+  note       String?
+  imageUrl   String?
+  createdAt  DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  rigId      String?
+  rig        Rig?     @relation(fields: [rigId], references: [id], onDelete: SetNull)
+
+  @@index([locationId, createdAt])
+  @@index([userId])
+}
+
+model SpotPhoto {
+  id         String   @id @default(cuid())
+  imageUrl   String
+  caption    String?
+  createdAt  DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([locationId, createdAt])
+  @@index([userId])
 }
