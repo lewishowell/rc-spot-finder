@@ -11,11 +11,10 @@ datasource db {
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
   defaultRegion String?   // User's preferred default map region
-  instagramUsername String? // Linked Instagram username
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

@@ -7,8 +7,6 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
-      instagramAccessToken?: string;
-      instagramUserId?: string;
     };
   }
 
@@ -20,7 +18,5 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
-    instagramAccessToken?: string;
-    instagramUserId?: string;
   }
 }
