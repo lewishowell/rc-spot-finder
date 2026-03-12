@@ -793,7 +793,7 @@ export default function Home() {
                   : `${filteredLocations.length} spot${filteredLocations.length !== 1 ? "s" : ""} found${searchQuery ? ` for "${searchQuery}"` : ""}. Click the map to add a new spot.`}
               </p>
               {newestSpot && !searchQuery && (
-                <div className="rounded-lg border-2 border-blue-400 bg-blue-50/50 p-2">
+                <div className="rounded-lg border border-blue-300 bg-blue-50/50 p-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 mb-1 block">Just Added</span>
                   <LocationCard
                     location={newestSpot}
@@ -804,6 +804,7 @@ export default function Home() {
                     onViewRig={handleViewRigFromCard}
                     onFavoriteChange={handleFavoriteChange}
                     isSelected={false}
+                    compact
                   />
                 </div>
               )}
@@ -910,7 +911,7 @@ export default function Home() {
                   onSetDefaultRegion={handleSetDefaultRegion}
                 />
                 {newestSpot && !searchQuery && (
-                  <div className="rounded-lg border-2 border-blue-400 bg-blue-50/50 p-2">
+                  <div className="rounded-lg border border-blue-300 bg-blue-50/50 p-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 mb-1 block">Just Added</span>
                     <LocationCard
                       location={newestSpot}
@@ -921,6 +922,7 @@ export default function Home() {
                       onViewRig={handleViewRigFromCard}
                       onFavoriteChange={handleFavoriteChange}
                       isSelected={false}
+                      compact
                     />
                   </div>
                 )}
