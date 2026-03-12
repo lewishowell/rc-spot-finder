@@ -641,7 +641,6 @@ export default function Home() {
           style={{ paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))" }}
         >
           <div className="flex gap-2 items-center">
-            <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0" style={{ maxWidth: "90px" }} />
             <div className="flex-shrink-0">
               <AuthButton
                 onOpenFriends={() => setShowFriends(true)}
@@ -656,6 +655,7 @@ export default function Home() {
                 placeholder="Search spots..."
               />
             </div>
+            <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0" style={{ maxWidth: "90px" }} />
           </div>
         </div>
 
@@ -836,7 +836,7 @@ export default function Home() {
       {/* Mobile Bottom Sheet */}
       <div
         className={`md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)] ${
-          isBottomSheetExpanded ? "h-[calc(100vh-80px)]" : "h-16"
+          isBottomSheetExpanded ? "h-[calc(100vh-80px)]" : "h-20"
         }`}
         style={{
           transform: "translateZ(0)",
@@ -849,15 +849,17 @@ export default function Home() {
         {/* Handle */}
         <div
           onClick={() => setIsBottomSheetExpanded(!isBottomSheetExpanded)}
-          className="w-full py-3 flex flex-col items-center cursor-pointer touch-none"
+          className="w-full py-3 px-4 flex items-center cursor-pointer touch-none"
         >
-          <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-1" />
-          <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-6 mb-1" />
-          <span className="text-xs text-gray-400">
-            {isBottomSheetExpanded
-              ? "Swipe down to close"
-              : `${filteredLocations.length} spots found`}
-          </span>
+          <div className="flex-1 flex flex-col items-center">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-1" />
+            <span className="text-xs text-gray-400">
+              {isBottomSheetExpanded
+                ? "Swipe down to close"
+                : `${filteredLocations.length} spots found`}
+            </span>
+          </div>
+          <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0" />
         </div>
 
         {/* Content */}
