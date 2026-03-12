@@ -27,8 +27,9 @@ import NotificationPanel from "@/components/NotificationPanel";
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-      <div className="text-gray-500">Loading map...</div>
+    <div className="w-full h-full bg-gray-100 flex flex-col items-center justify-center gap-3">
+      <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-12 animate-pulse" />
+      <div className="text-sm text-gray-400">Loading map...</div>
     </div>
   ),
 });

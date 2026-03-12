@@ -73,8 +73,9 @@ export default function RigGarage({ userId, isOwner = false, onRigClick, onAddRi
       )}
 
       {rigs.length === 0 ? (
-        <div className="p-4 text-center text-gray-500 text-sm">
-          No rigs yet.
+        <div className="p-6 text-center">
+          <img src="/favicon.svg" alt="" className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-sm text-gray-400">No rigs yet. Add your first rig!</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

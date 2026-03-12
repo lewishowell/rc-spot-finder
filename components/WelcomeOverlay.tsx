@@ -62,9 +62,7 @@ export default function WelcomeOverlay({
         <div className="px-8 py-10 sm:px-12 sm:py-12">
           {/* Hero */}
           <div className="text-center mb-10">
-            <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-3">
-              RC Spot Finder
-            </h1>
+            <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-16 sm:h-20 mx-auto mb-4 drop-shadow-lg" />
             <p className="text-lg sm:text-xl text-gray-300 font-light">
               Discover and share the best RC spots near you
             </p>
