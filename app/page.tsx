@@ -835,17 +835,17 @@ export default function Home() {
 
       {/* Mobile Featured Spots - shown for logged-out users only */}
       {!session && !isBottomSheetExpanded && !selectedLocation && !showForm && locations.length > 0 && (
-        <div className="md:hidden fixed bottom-16 left-0 right-0 z-[1001]" style={{ transform: "translateZ(0)" }}>
+        <div className="md:hidden fixed left-0 right-0 z-[1001]" style={{ bottom: "calc(5rem + env(safe-area-inset-bottom, 0px))", transform: "translateZ(0)" }}>
           <FeaturedSpots spots={locations} onSpotClick={handleFeaturedSpotClick} />
         </div>
       )}
 
       {/* Mobile Bottom Sheet */}
       <div
-        className={`md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)] ${
-          isBottomSheetExpanded ? "h-[calc(100vh-80px)]" : "h-20"
-        }`}
+        className="md:hidden fixed left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)]"
         style={{
+          bottom: "env(safe-area-inset-bottom, 0px)",
+          height: isBottomSheetExpanded ? "calc(100dvh - 80px)" : "5rem",
           transform: "translateZ(0)",
           WebkitTransform: "translateZ(0)",
         }}
