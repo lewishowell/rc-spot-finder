@@ -618,6 +618,11 @@ export default function Home() {
         />
 
         {/* Desktop sidebar toggle - stays inside map container */}
+        {!isSidebarOpen && (
+          <div className="hidden md:block absolute top-4 right-16 z-[1000]">
+            <img src="/logo.svg" alt="RC Spot Finder" className="h-10 rounded-lg shadow-lg" />
+          </div>
+        )}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="hidden md:flex absolute top-4 right-4 w-10 h-10 bg-white rounded-lg shadow-lg items-center justify-center z-[1000] hover:bg-gray-50 transition-colors"
