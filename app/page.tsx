@@ -641,7 +641,7 @@ export default function Home() {
           style={{ paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))" }}
         >
           <div className="flex gap-2 items-center">
-            <img src="/logo.svg" alt="RC Spot Finder" className="h-8 flex-shrink-0" style={{ maxWidth: "100px" }} />
+            <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0" style={{ maxWidth: "90px" }} />
             <div className="flex-shrink-0">
               <AuthButton
                 onOpenFriends={() => setShowFriends(true)}
