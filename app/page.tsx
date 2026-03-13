@@ -646,6 +646,9 @@ export default function Home() {
           className="absolute top-0 left-0 right-0 p-4 pointer-events-auto"
           style={{ paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))" }}
         >
+          <div className="flex items-center justify-center mb-2">
+            <img src="/logo.svg" alt="RC Spot Finder" className="h-10" />
+          </div>
           <div className="flex gap-2 items-center">
             <div className="flex-shrink-0">
               <AuthButton
@@ -661,7 +664,6 @@ export default function Home() {
                 placeholder="Search spots..."
               />
             </div>
-            <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-10 flex-shrink-0 bg-white rounded-full px-1.5 shadow-sm" style={{ maxWidth: "100px" }} />
           </div>
         </div>
 
