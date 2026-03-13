@@ -641,7 +641,7 @@ export default function Home() {
           style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top, 0px))" }}
         >
           <div className="flex items-center justify-center mb-2">
-            <img src="/logo.svg" alt="RC Spot Finder" className="h-8" />
+            <img src="/logo.svg" alt="RC Spot Finder" className="h-10" />
           </div>
           <div className="flex gap-2 items-start">
             <div className="flex-shrink-0">
