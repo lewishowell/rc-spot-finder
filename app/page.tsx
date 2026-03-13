@@ -560,7 +560,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-full w-full flex flex-col md:flex-row overflow-hidden">
+    <div className="h-full w-full flex flex-col lg:flex-row overflow-hidden">
       {/* Welcome Overlay - first visit only */}
       {showWelcome && (
         <WelcomeOverlay
@@ -620,13 +620,13 @@ export default function Home() {
 
         {/* Desktop sidebar toggle - stays inside map container */}
         {!isSidebarOpen && (
-          <div className="hidden md:block absolute top-4 right-16 z-[1000]">
+          <div className="hidden lg:block absolute top-4 right-16 z-[1000]">
             <img src="/logo.svg" alt="RC Spot Finder" className="h-10 rounded-lg shadow-lg" />
           </div>
         )}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="hidden md:flex absolute top-4 right-4 w-10 h-10 bg-white rounded-lg shadow-lg items-center justify-center z-[1000] hover:bg-gray-50 transition-colors"
+          className="hidden lg:flex absolute top-4 right-4 w-10 h-10 bg-white rounded-lg shadow-lg items-center justify-center z-[1000] hover:bg-gray-50 transition-colors"
         >
           <svg
             className={`w-5 h-5 text-gray-600 transition-transform ${isSidebarOpen ? "" : "rotate-180"}`}
@@ -640,7 +640,7 @@ export default function Home() {
       </div>
 
       {/* Mobile UI Overlay - fixed outside map container to prevent iOS issues */}
-      <div className="md:hidden fixed inset-0 pointer-events-none z-[1000]" style={{ transform: "translateZ(0)" }}>
+      <div className="lg:hidden fixed inset-0 pointer-events-none z-[1000]" style={{ transform: "translateZ(0)" }}>
         {/* Search box and auth button */}
         <div
           className="absolute top-0 left-0 right-0 p-4 pointer-events-auto"
@@ -692,7 +692,7 @@ export default function Home() {
       </div>
 
       {/* Desktop search box, auth, and stats - separate from mobile */}
-      <div className="hidden md:flex absolute top-4 left-4 gap-3 items-start z-[1000]">
+      <div className="hidden lg:flex absolute top-4 left-4 gap-3 items-start z-[1000]">
         <AuthButton
                 onOpenFriends={() => setShowFriends(true)}
                 onOpenProfile={() => setShowProfileSettings(true)}
@@ -719,7 +719,7 @@ export default function Home() {
 
       {/* Desktop Sidebar */}
       <div
-        className={`hidden md:flex flex-col bg-white border-l border-gray-200 transition-all duration-300 ${
+        className={`hidden lg:flex flex-col bg-white border-l border-gray-200 transition-all duration-300 ${
           isSidebarOpen ? "w-96" : "w-0 overflow-hidden"
         }`}
       >
@@ -835,14 +835,14 @@ export default function Home() {
 
       {/* Mobile Featured Spots - shown for logged-out users only */}
       {!session && !isBottomSheetExpanded && !selectedLocation && !showForm && locations.length > 0 && (
-        <div className="md:hidden fixed left-0 right-0 z-[1001]" style={{ bottom: "calc(5rem + env(safe-area-inset-bottom, 0px))", transform: "translateZ(0)" }}>
+        <div className="lg:hidden fixed left-0 right-0 z-[1001]" style={{ bottom: "calc(5rem + env(safe-area-inset-bottom, 0px))", transform: "translateZ(0)" }}>
           <FeaturedSpots spots={locations} onSpotClick={handleFeaturedSpotClick} />
         </div>
       )}
 
       {/* Mobile Bottom Sheet */}
       <div
-        className="md:hidden fixed left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)]"
+        className="lg:hidden fixed left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 z-[1002] pb-[env(safe-area-inset-bottom,0px)]"
         style={{
           bottom: "env(safe-area-inset-bottom, 0px)",
           height: isBottomSheetExpanded ? "calc(100dvh - 80px)" : "5rem",

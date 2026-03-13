@@ -76,7 +76,7 @@ export default function SearchBox({ onSearch, placeholder = "Search locations...
           </button>
         </div>
       </div>
-      <p className="mt-1 text-sm text-gray-500 hidden md:block">
+      <p className="mt-1 text-sm text-gray-500 hidden lg:block">
         Try: "bash spots in California" or "5 star race tracks"
       </p>
     </form>
