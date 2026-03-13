@@ -40,7 +40,7 @@ export default function SearchBox({ onSearch, placeholder = "Search locations...
           value={query}
           onChange={handleChange}
           placeholder={placeholder}
-          className="w-full pl-10 pr-24 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base text-black placeholder:text-gray-400"
+          className="w-full pl-10 pr-24 py-2 bg-white border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base text-black placeholder:text-gray-400"
           style={{ fontSize: "16px" }}
         />
         <svg
@@ -70,7 +70,7 @@ export default function SearchBox({ onSearch, placeholder = "Search locations...
           )}
           <button
             type="submit"
-            className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
+            className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-full hover:bg-blue-700 transition-colors"
           >
             Search
           </button>

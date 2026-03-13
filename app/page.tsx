@@ -661,7 +661,7 @@ export default function Home() {
                 placeholder="Search spots..."
               />
             </div>
-            <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-9 flex-shrink-0 bg-white rounded-lg px-1 shadow-sm" style={{ maxWidth: "90px" }} />
+            <img src="/logo-mobile.svg" alt="RC Spot Finder" className="h-10 flex-shrink-0 bg-white rounded-full px-1.5 shadow-sm" style={{ maxWidth: "100px" }} />
           </div>
         </div>
 
