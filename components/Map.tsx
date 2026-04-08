@@ -181,41 +181,25 @@ function FlyToDensestArea({ locations }: { locations: Location[] }) {
     if (hasFired.current || locations.length === 0) return;
     hasFired.current = true;
 
-    // Grid-based density: divide into cells and find the densest one
-    const gridSize = 2; // degrees per cell
-    const cells: Record<string, { lats: number[]; lngs: number[] }> = {};
-
+    // Count spots per region and fly to the region with the most
+    const regionCounts: Record<string, number> = {};
     for (const loc of locations) {
-      const cellKey = `${Math.floor(loc.latitude / gridSize)},${Math.floor(loc.longitude / gridSize)}`;
-      if (!cells[cellKey]) {
-        cells[cellKey] = { lats: [], lngs: [] };
-      }
-      const cell = cells[cellKey];
-      cell.lats.push(loc.latitude);
-      cell.lngs.push(loc.longitude);
+      const region = loc.region || "Other";
+      regionCounts[region] = (regionCounts[region] || 0) + 1;
     }
 
-    // Find the cell with the most spots
-    let bestCell: { lats: number[]; lngs: number[] } | null = null;
+    let bestRegion = "Other";
     let bestCount = 0;
-    for (const cell of Object.values(cells)) {
-      if (cell.lats.length > bestCount) {
-        bestCount = cell.lats.length;
-        bestCell = cell;
+    for (const [region, count] of Object.entries(regionCounts)) {
+      if (count > bestCount) {
+        bestCount = count;
+        bestRegion = region;
       }
     }
 
-    if (bestCell && bestCount > 1) {
-      const avgLat = bestCell.lats.reduce((a, b) => a + b, 0) / bestCell.lats.length;
-      const avgLng = bestCell.lngs.reduce((a, b) => a + b, 0) / bestCell.lngs.length;
-
-      // Pick zoom based on spread within the cluster
-      const latSpread = Math.max(...bestCell.lats) - Math.min(...bestCell.lats);
-      const lngSpread = Math.max(...bestCell.lngs) - Math.min(...bestCell.lngs);
-      const spread = Math.max(latSpread, lngSpread);
-      const zoom = spread < 0.5 ? 10 : spread < 1 ? 8 : spread < 2 ? 7 : 6;
-
-      map.flyTo([avgLat, avgLng], zoom, { duration: 1 });
+    const coords = REGION_COORDINATES[bestRegion];
+    if (coords) {
+      map.flyTo([coords.lat, coords.lng], coords.zoom, { duration: 1 });
     }
   }, [locations, map]);
 
